@@ -7,7 +7,7 @@ public partial class FilePlugin : Plugin
     [DataContract]
     private class DirectoryNode()
     {
-        [DataMember] public ShareInvite? Share = null;
+        [DataMember] public ShareInvite? ShareInvite = null;
 
         [DataMember] public Dictionary<string, DirectoryNode> Directories = [];
 
