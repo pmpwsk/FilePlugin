@@ -9,6 +9,8 @@ public partial class FilePlugin : Plugin
     {
         [DataMember] public ShareInvite? ShareInvite = null;
 
+        [DataMember] public Dictionary<string, bool> ShareAccess = [];
+
         [DataMember] public Dictionary<string, DirectoryNode> Directories = [];
 
         [DataMember] public Dictionary<string, FileNode> Files = [];
