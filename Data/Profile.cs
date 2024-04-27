@@ -8,8 +8,8 @@ public partial class FilePlugin : Plugin
     [DataContract]
     private class Profile() : ITableValue
     {
-        [DataMember] List<ShareInfo> SavedShares = [];
+        [DataMember] public List<ShareInfo> SavedShares = [];
 
-        [DataMember] DirectoryNode RootNode = new();
+        [DataMember] public DirectoryNode RootNode = new();
     }
 }
