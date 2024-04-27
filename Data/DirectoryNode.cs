@@ -11,8 +11,8 @@ public partial class FilePlugin : Plugin
 
         [DataMember] public Dictionary<string, bool> ShareAccess = [];
 
-        [DataMember] public Dictionary<string, DirectoryNode> Directories = [];
+        [DataMember] public SortedList<string, DirectoryNode> Directories = [];
 
-        [DataMember] public Dictionary<string, FileNode> Files = [];
+        [DataMember] public SortedList<string, FileNode> Files = [];
     }
 }
