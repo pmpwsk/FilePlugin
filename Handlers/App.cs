@@ -119,6 +119,58 @@ public partial class FilePlugin : Plugin
                 else MissingFileOrAccess(req, e);
             } break;
 
+            case "/editor":
+            {
+                //edit mode > file > editor
+                if (!req.LoggedIn)
+                {
+                    req.RedirectToLogin();
+                    break;
+                }
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                {
+                    req.Status = 400;
+                    break;
+                }
+                
+                string pEnc = HttpUtility.UrlEncode(p);
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (directory != null)
+                    req.Status = 400;
+                else if (file != null)
+                {
+                    page.Title = name + " - Files";
+                    page.Scripts.Add(new Script(pathPrefix + "/query.js"));
+                    page.Scripts.Add(new Script(pathPrefix + "/editor.js"));
+                    if (parent != null)
+                    {
+                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                        string backUrl = $"{pathPrefix}/edit?u={u}&p={parentEnc}";
+                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{backUrl}')", "right", id: "back"));
+                        page.Sidebar =
+                        [
+                            new ButtonElementJS(null, "Go up a level", $"GoTo('{backUrl}')"),
+                            ..parent.Directories.Select(dKV => new ButtonElementJS(null, dKV.Key, $"GoTo('{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}')", dKV.Key == name ? "green" : null)),
+                            ..parent.Files.Select(fKV => new ButtonElementJS(null, fKV.Key, $"GoTo('{pathPrefix}/editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}')", fKV.Key == name ? "green" : null))
+                        ];
+                    }
+                    else page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/shares')", "right"));
+                    page.Navigation.Add(new ButtonJS("More", $"GoTo('{pathPrefix}/more?u={u}&p={pEnc}')", "right"));
+                    page.Styles.Add(new CustomStyle(
+                        "div.editor { display: flex; flex-flow: column; }",
+                        "div.editor textarea { flex: 1 1 auto; }",
+                        "div.editor h1, div.editor h2, div.editor div.buttons { flex: 0 1 auto; }"
+                    ));
+                    page.HideFooter = true;
+                    e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "text", null, onInput: "TextChanged(); Resize();"), classes: "editor", id: "editor")
+                    {
+                        Button = new ButtonJS("Saved!", $"Save()", null, id: "save")
+                    });
+                }
+                else MissingFileOrAccess(req, e);
+            } break;
+
             default:
                 req.Status = 404;
                 break;
