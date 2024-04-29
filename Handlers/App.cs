@@ -52,7 +52,7 @@ public partial class FilePlugin : Plugin
                 
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
-                bool exists = CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
                 if (directory != null)
                 {
                     //edit mode > directory
@@ -116,11 +116,7 @@ public partial class FilePlugin : Plugin
                     e.Add(new ButtonElement("Download", null, $"/dl{pathPrefix}?u={u}&p={pEnc}", newTab: true));
                     e.Add(new ButtonElement("Edit as text", null, $"{pathPrefix}/editor?u={u}&p={pEnc}"));
                 }
-                else if (exists)
-                    if (req.LoggedIn)
-                        req.Status = 403;
-                    else req.RedirectToLogin();
-                else req.Status = 404;
+                else MissingFileOrAccess(req, e);
             } break;
 
             default:
