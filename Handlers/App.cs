@@ -105,6 +105,8 @@ public partial class FilePlugin : Plugin
         return Task.CompletedTask;
     }
 
+    private static void MissingFileOrAccess(AppRequest req, List<IPageElement> e)
+        => e.Add(new LargeContainerElement("Error", "The file/folder you're looking for either doesn't exist or you don't have access to it." + (req.LoggedIn?"":" You are not logged in, that might be the reason."), "red"));
 
     private class EmptyPage : IPage
     {
