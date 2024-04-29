@@ -21,6 +21,7 @@ public partial class FilePlugin : Plugin
         {
             case "":
             {
+                //main page
                 if (!req.LoggedIn)
                 {
                     req.RedirectToLogin();
@@ -34,8 +35,10 @@ public partial class FilePlugin : Plugin
                 if (profile.SavedShares.Count == 0)
                     e.Add(new ButtonElement("Shared with me", null, pathPrefix + "/shares"));
             } break;
+
             case "/edit":
             {
+                //edit mode
                 if (!req.LoggedIn)
                 {
                     req.RedirectToLogin();
@@ -51,6 +54,7 @@ public partial class FilePlugin : Plugin
                 bool exists = CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
                 if (directory != null)
                 {
+                    //edit mode > directory
                     page.Title = name + " - Files";
                     page.Scripts.Add(new Script(pathPrefix + "/query.js"));
                     page.Scripts.Add(new Script(pathPrefix + "/edit-d.js"));
@@ -87,6 +91,7 @@ public partial class FilePlugin : Plugin
                 }
                 else if (file != null)
                 {
+                    //edit mode > file
                     page.Title = name + " - Files";
                     //////////////////////////////////
                     req.Status = 501;
@@ -97,6 +102,7 @@ public partial class FilePlugin : Plugin
                     else req.RedirectToLogin();
                 else req.Status = 404;
             } break;
+
             default:
                 req.Status = 404;
                 break;
