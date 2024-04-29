@@ -15,9 +15,9 @@ public partial class FilePlugin : Plugin
                 }
 
                 var segments = p.Split('/');
-                bool exists = CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
                 if (directory == null)
-                    req.Status = exists ? 403 : 404;
+                    req.Status = 404;
                 else if (directory.Directories.ContainsKey(n) || directory.Files.ContainsKey(n))
                     req.Status = 302;
                 else if (profile == null)
