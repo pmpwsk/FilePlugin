@@ -40,6 +40,29 @@ public partial class FilePlugin : Plugin
                 }
                 
             } break;
+
+            case "/load":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                {
+                    req.Status = 400;
+                    break;
+                }
+                
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (directory != null)
+                    req.Status = 400;
+                else if (file != null)
+                {
+                    var content = File.ReadAllText($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
+                    if (content == "")
+                        req.Status = 201;
+                    else await req.Write(content);
+                }
+                else req.Status = 404;
+            } break;
+
             default:
                 req.Status = 404;
                 break;
