@@ -104,4 +104,11 @@ public partial class FilePlugin : Plugin
 
         return Task.CompletedTask;
     }
+
+
+    private class EmptyPage : IPage
+    {
+        public IEnumerable<string> Export(AppRequest request)
+            => [];
+    }
 }
