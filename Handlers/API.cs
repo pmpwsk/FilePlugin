@@ -2,7 +2,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    public override Task Handle(ApiRequest req, string path, string pathPrefix)
+    public override async Task Handle(ApiRequest req, string path, string pathPrefix)
     {
         switch (path)
         {
@@ -44,7 +44,5 @@ public partial class FilePlugin : Plugin
                 req.Status = 404;
                 break;
         }
-
-        return Task.CompletedTask;
     }
 }
