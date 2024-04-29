@@ -1,4 +1,6 @@
 using System.Web;
+using Microsoft.AspNetCore.Http;
+using uwap.WebFramework.Accounts;
 using uwap.WebFramework.Elements;
 
 namespace uwap.WebFramework.Plugins;
@@ -172,7 +174,58 @@ public partial class FilePlugin : Plugin
             } break;
 
             default:
+                if (path.StartsWith("/@"))
+                {
+                    //view mode
+                    string[] segments = path[2..].Split('/', '\\').Select(x => HttpUtility.UrlDecode(x)).ToArray();
+                    if (segments.Skip(1).Contains(".."))
+                    {
+                        req.Status = 400;
+                        break;
+                    }
+                    
+                    User? user = req.UserTable.FindByUsername(segments[0]);
+                    if (user == null)
+                    {
                 req.Status = 404;
+                        break;
+                    }
+
+                    segments[0] = "";
+                    bool exists = CheckAccess(req, user.Id, segments, false, out _, out var parent, out var directory, out var file, out var name);
+                    if (directory != null)
+                    {
+                        //view mode > directory
+                        if (directory.Files.TryGetValue("default.wfpg", out file))
+                            //wfpg (default.wfpg)
+                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/ZGVmYXVsdC53ZnBn"));
+                        else
+                        {
+                            //list directories and files
+                            req.Status = 501;
+                        }
+                    }
+                    else if (file != null)
+                    {
+                        //view mode > file
+                        req.Context.Response.ContentType = segments.Last().SplitAtLast('.', out _, out var extension) && Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
+                        await req.Context.Response.SendFileAsync($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
+                        req.Page = new EmptyPage();
+                        await req.Finish();
+                    }
+                    else if (exists)
+                        MissingFileOrAccess(req, e);
+                    else
+                    {
+                        segments[^1] += ".wfpg";
+                        CheckAccess(req, user.Id, segments, false, out _, out _, out _, out file, out _);
+                        if (file != null)
+                            //wfpg (not default.wfpg)
+                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
+                        else MissingFileOrAccess(req, e);
+                    }
+                }
+                else req.Status = 404;
                 break;
         }
     }
