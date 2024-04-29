@@ -5,7 +5,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    public override Task Handle(AppRequest req, string path, string pathPrefix)
+    public override async Task Handle(AppRequest req, string path, string pathPrefix)
     {
         Presets.CreatePage(req, "Files", out var page, out var e);
         Presets.Navigation(req, page);
@@ -101,8 +101,6 @@ public partial class FilePlugin : Plugin
                 req.Status = 404;
                 break;
         }
-
-        return Task.CompletedTask;
     }
 
     private static void MissingFileOrAccess(AppRequest req, List<IPageElement> e)
