@@ -94,8 +94,27 @@ public partial class FilePlugin : Plugin
                 {
                     //edit mode > file
                     page.Title = name + " - Files";
-                    //////////////////////////////////
-                    req.Status = 501;
+                    if (parent != null)
+                    {
+                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                        string backUrl = $"{pathPrefix}/edit?u={u}&p={parentEnc}";
+                        page.Navigation.Add(new Button("Back", backUrl, "right"));
+                        page.Sidebar =
+                        [
+                            new ButtonElement(null, "Go up a level", backUrl),
+                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                        ];
+                    }
+                    else page.Navigation.Add(new Button("Back", $"{pathPrefix}/shares", "right"));
+                    page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
+                    e.Add(new HeadingElement(name, "Edit mode"));
+                    string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username;
+                    if (segments.Last().EndsWith(".wfpg"))
+                        e.Add(new ButtonElement("View page", null, $"{pathPrefix}/@{username}{(segments.Last() == "default.wfpg" ? string.Join('/', segments.SkipLast(1)) : p[..^5])}"));
+                    e.Add(new ButtonElement("View in browser", null, $"{pathPrefix}/@{username}{p}"));
+                    e.Add(new ButtonElement("Download", null, $"/dl{pathPrefix}?u={u}&p={pEnc}", newTab: true));
+                    e.Add(new ButtonElement("Edit as text", null, $"{pathPrefix}/editor?u={u}&p={pEnc}"));
                 }
                 else if (exists)
                     if (req.LoggedIn)
