@@ -46,6 +46,8 @@ public partial class FilePlugin : Plugin
                 profile.Lock();
                 foreach (var uploadedFile in req.Files)
                 {
+                    if (uploadedFile.FileName == "." || uploadedFile.FileName == "..")
+                        continue;
                     string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, uploadedFile.FileName]).Select(Parsers.ToBase64PathSafe))}";
                     long oldSize;
                     if (directory.Files.TryGetValue(uploadedFile.FileName, out var f))
