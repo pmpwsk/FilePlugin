@@ -7,11 +7,8 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    public override async Task Handle(AppRequest req, string path, string pathPrefix)
+    protected override async Task<int> HandleNeatly(AppRequest req, string path, string pathPrefix, Page page, List<IPageElement> e)
     {
-        Presets.CreatePage(req, "Files", out var page, out var e);
-        Presets.Navigation(req, page);
-
         string pluginHome = pathPrefix == "" ? "/" : pathPrefix;
         page.Navigation =
         [
@@ -24,11 +21,9 @@ public partial class FilePlugin : Plugin
             case "":
             {
                 //main page
+                page.Title = "Files";
                 if (!req.LoggedIn)
-                {
-                    req.RedirectToLogin();
-                    break;
-                }
+                    return -1;
 
                 var profile = GetOrCreateProfile(req);
                 e.Add(new HeadingElement("Files"));
@@ -42,16 +37,9 @@ public partial class FilePlugin : Plugin
             {
                 //edit mode
                 if (!req.LoggedIn)
-                {
-                    req.RedirectToLogin();
-                    break;
-                }
+                    return -1;
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
-                {
-                    req.Status = 400;
-                    break;
-                }
-                
+                    return 400;
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
@@ -125,21 +113,14 @@ public partial class FilePlugin : Plugin
             {
                 //edit mode > file > editor
                 if (!req.LoggedIn)
-                {
-                    req.RedirectToLogin();
-                    break;
-                }
+                    return -1;
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
-                {
-                    req.Status = 400;
-                    break;
-                }
-                
+                    return 400;
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
                 if (directory != null)
-                    req.Status = 400;
+                    return 400;
                 else if (file != null)
                 {
                     page.Title = name + " - Files";
@@ -179,17 +160,11 @@ public partial class FilePlugin : Plugin
                     //view mode
                     string[] segments = path[2..].Split('/', '\\').Select(x => HttpUtility.UrlDecode(x)).ToArray();
                     if (segments.Skip(1).Contains(".."))
-                    {
-                        req.Status = 400;
-                        break;
-                    }
+                        return 400;
                     
                     User? user = req.UserTable.FindByUsername(segments[0]);
                     if (user == null)
-                    {
-                req.Status = 404;
-                        break;
-                    }
+                        return 404;
 
                     segments[0] = "";
                     bool exists = CheckAccess(req, user.Id, segments, false, out _, out var parent, out var directory, out var file, out var name);
@@ -225,9 +200,11 @@ public partial class FilePlugin : Plugin
                         else MissingFileOrAccess(req, e);
                     }
                 }
-                else req.Status = 404;
+                else return 404;
                 break;
         }
+
+        return 0;
     }
 
     private static void MissingFileOrAccess(AppRequest req, List<IPageElement> e)
