@@ -74,7 +74,7 @@ public partial class FilePlugin : Plugin
                 await req.Write(content);
             } break;
 
-            case "/share/set":
+            case "/share":
             {
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     return 400;

@@ -6,7 +6,7 @@ async function AddAccess(uid, canEdit) {
     }
     var canEdit = document.querySelector("#edit").checked;
     try {
-        switch ((await fetch(`/api[PATH_PREFIX]/share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&un=${un}&e=${canEdit}`)).status) {
+        switch ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&un=${un}&e=${canEdit}`)).status) {
             case 200:
                 window.location.reload();
                 break;
@@ -24,7 +24,7 @@ async function AddAccess(uid, canEdit) {
 
 async function SetAccess(uid, canEdit) {
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}&e=${canEdit}`)).status === 200)
+        if ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}&e=${canEdit}`)).status === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {
@@ -34,7 +34,7 @@ async function SetAccess(uid, canEdit) {
 
 async function RemoveAccess(uid) {
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}`)).status === 200)
+        if ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}`)).status === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {
