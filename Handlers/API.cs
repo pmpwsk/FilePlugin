@@ -80,7 +80,7 @@ public partial class FilePlugin : Plugin
             {
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     return 400;
-                if (u != req.User.Id)
+                if (req.LoggedIn && u != req.User.Id)
                     return 403;
                 if (!req.Query.TryGetValue("uid", out var uid))
                 {
