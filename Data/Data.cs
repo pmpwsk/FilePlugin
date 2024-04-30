@@ -18,6 +18,25 @@ public partial class FilePlugin : Plugin
         return profile;
     }
 
+    private Node? FindNode(IRequest req, string userId, string[] segments, out Profile? profile)
+    {
+        if (!Table.TryGetValue($"{req.UserTable.Name}_{userId}", out profile))
+            return null;
+        DirectoryNode? current = profile.RootNode;
+        if (segments.Length == 1)
+        {
+            return current;
+        }
+        foreach (string segment in segments.Skip(1).SkipLast(1))
+            if (!current.Directories.TryGetValue(segment, out current))
+                return null;
+        if (current.Directories.TryGetValue(segments.Last(), out var d))
+            return d;
+        else if (current.Files.TryGetValue(segments.Last(), out var f))
+            return f;
+        else return null;
+    }
+
     private bool CheckAccess(IRequest req, string userId, string[] segments, bool wantsEdit, out Profile? profile, out DirectoryNode? parent, out DirectoryNode? directory, out FileNode? file, out string name)
     {
         string? accessKey = req.LoggedIn ? req.User.Id : null;
