@@ -26,7 +26,7 @@ public partial class FilePlugin : Plugin
                     return -1;
 
                 var profile = GetOrCreateProfile(req);
-                e.Add(new HeadingElement("Files"));
+                e.Add(new HeadingElement("Files", $"{FileSizeString(profile.SizeUsed)} used"));
                 e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={req.User.Id}&p="));
                 e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{req.User.Username}"));
                 if (profile.SavedShares.Count == 0)
@@ -64,9 +64,9 @@ public partial class FilePlugin : Plugin
                     else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == u ? pluginHome : $"{pathPrefix}/shares", "right"));
                     page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     e.Add(new HeadingElement(name, "Edit mode"));
-                    e.Add(new ContainerElement("New", new TextBox("Enter a name...", null, "name", onEnter: "AddNode('false')", autofocus: true))
+                    e.Add(new ContainerElement("New:", new TextBox("Enter a name...", null, "name", onEnter: "AddNode('false')", autofocus: true))
                     { Buttons = [
-                        new ButtonJS("Text file", "AddNode('false')", "green"),
+                        new ButtonJS("File", "AddNode('false')", "green"),
                         new ButtonJS("Folder", "AddNode('true')", "green")
                     ]});
                     page.AddError();
@@ -105,6 +105,48 @@ public partial class FilePlugin : Plugin
                     e.Add(new ButtonElement("View in browser", null, $"{pathPrefix}/@{username}{p}"));
                     e.Add(new ButtonElement("Download", null, $"/dl{pathPrefix}?u={u}&p={pEnc}", newTab: true));
                     e.Add(new ButtonElement("Edit as text", null, $"{pathPrefix}/editor?u={u}&p={pEnc}"));
+                }
+                else MissingFileOrAccess(req, e);
+            } break;
+
+            case "/more":
+            {
+                //edit mode > more
+                if (!req.LoggedIn)
+                    return -1;
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                string pEnc = HttpUtility.UrlEncode(p);
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (parent != null && (directory != null || file != null))
+                {
+                    page.Title = name + " - Files";
+                    page.Scripts.Add(new Script(pathPrefix + "/query.js"));
+                    page.Scripts.Add(new Script(pathPrefix + "/more.js"));
+                    page.Navigation.Add(new Button("Back", $"{pathPrefix}/edit?u={u}&p={pEnc}", "right"));
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    page.Sidebar =
+                    [
+                        new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
+                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                    ];
+                    e.Add(new HeadingElement(name, "Edit mode > More"));
+                    page.AddError();
+                    e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
+                    e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
+                    e.Add(new ButtonElement("Move", null, $"{pathPrefix}/move?u={u}&p={pEnc}"));
+                    e.Add(new ButtonElement("Copy", null, $"{pathPrefix}/copy?u={u}&p={pEnc}"));
+                    if (u == req.User.Id)
+                        e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
+                    else
+                    {
+                        var profile = GetOrCreateProfile(req);
+                        if (profile.SavedShares.Any(x => x.Path == p && x.UserId == u))
+                            e.Add(new ButtonElementJS("Remove from saved shares", null, "RemoveShare()", "red"));
+                        else e.Add(new ButtonElementJS("Add to saved shares", null, "AddShare()", "green"));
+                    }
                 }
                 else MissingFileOrAccess(req, e);
             } break;
@@ -209,35 +251,6 @@ public partial class FilePlugin : Plugin
 
     private static void MissingFileOrAccess(AppRequest req, List<IPageElement> e)
         => e.Add(new LargeContainerElement("Error", "The file/folder you're looking for either doesn't exist or you don't have access to it." + (req.LoggedIn?"":" You are not logged in, that might be the reason."), "red"));
-
-    private static string FileSizeString(long size)
-    {
-        return size switch
-        {
-            0 => "0 Bytes",
-            1 => "1 Byte",
-            _ => (int)Math.Floor(Math.Log(size, 1024)) switch
-            {
-                0 => $"{size} Bytes",
-                1 => $"{Number(1024)} KiB",
-                2 => $"{Number(1048576)} MiB",
-                3 => $"{Number(1073741824)} GiB",
-                4 => $"{Number(1099511627776)} TiB",
-                5 => $"{Number(1125899906842624)} PiB",
-                _ => $"{Number(1152921504606846976)} EiB"
-            }
-        };
-        
-        string Number(double d)
-        {
-            string result = Math.Round(size / d, 2, MidpointRounding.AwayFromZero).ToString();
-            if (result.SplitAtLast('.', out _, out var r))
-                if (r.Length == 1)
-                    return result + '0';
-                else return result;
-            else return result + ".00";
-        }
-    }
 
     private class EmptyPage : IPage
     {
