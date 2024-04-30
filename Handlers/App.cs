@@ -53,7 +53,7 @@ public partial class FilePlugin : Plugin
                 page.Title = "Files";
                 if (!req.LoggedIn)
                     return -1;
-
+                
                 userProfile ??= GetOrCreateProfile(req);
                 e.Add(new HeadingElement("Files", $"{FileSizeString(userProfile.SizeUsed)} used"));
                 e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={req.User.Id}&p="));
@@ -128,7 +128,7 @@ public partial class FilePlugin : Plugin
                     }
                     else page.Navigation.Add(new Button("Back", $"{pathPrefix}/shares", "right"));
                     if (parent != null || req.LoggedIn)
-                    page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
+                        page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     e.Add(new HeadingElement(name, "Edit mode"));
                     string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username;
                     if (segments.Last().EndsWith(".wfpg"))
@@ -160,17 +160,17 @@ public partial class FilePlugin : Plugin
                     page.AddError();
                     if (parent != null)
                     {
-                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
-                    page.Sidebar =
-                    [
-                        new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
-                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
-                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
-                    ];
-                    e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
-                    e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
-                    e.Add(new ButtonElement("Move", null, $"{pathPrefix}/move?u={u}&p={pEnc}"));
-                    e.Add(new ButtonElement("Copy", null, $"{pathPrefix}/copy?u={u}&p={pEnc}"));
+                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                        page.Sidebar =
+                        [
+                            new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
+                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                        ];
+                        e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
+                        e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
+                        e.Add(new ButtonElement("Move", null, $"{pathPrefix}/move?u={u}&p={pEnc}"));
+                        e.Add(new ButtonElement("Copy", null, $"{pathPrefix}/copy?u={u}&p={pEnc}"));
                     }
                     if (u == req.User.Id)
                         e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
@@ -247,12 +247,12 @@ public partial class FilePlugin : Plugin
                     page.Navigation.Add(new Button("Back", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
                     if (parent != null)
-                    page.Sidebar =
-                    [
-                        new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
-                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
-                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
-                    ];
+                        page.Sidebar =
+                        [
+                            new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
+                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                        ];
                     e.Add(new HeadingElement(name, "Edit mode > Share"));
                     page.AddError();
                     e.Add(new ContainerElement("Add access",
@@ -281,6 +281,104 @@ public partial class FilePlugin : Plugin
                     ]});
                 }
                 else return 404;
+            } break;
+
+            case "/shares":
+            {
+                page.Title = "Shares - Files";
+                if (req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p))
+                {
+                    if (req.LoggedIn && req.User.Id == u)
+                    {
+                        req.Redirect(pluginHome);
+                        break;
+                    }
+                    //share selected
+                    var pEnc = HttpUtility.UrlEncode(p);
+                    var segments = p.Split('/');
+                    CheckAccess(req, u, segments, true, out _, out _, out var directory, out var file, out _);
+                    bool canEdit;
+                    if (directory != null || file != null)
+                        canEdit = true;
+                    else
+                    {
+                        CheckAccess(req, u, segments, false, out _, out _, out directory, out file, out _);
+                        if (directory != null || file != null)
+                            canEdit = false;
+                        else if (req.Query.TryGetValue("c", out var c))
+                        {
+                            Node? node = FindNode(req, u, segments, out var profile);
+                            if (node != null && node.ShareInvite != null && node.ShareInvite.Expiration >= DateTime.UtcNow && node.ShareInvite.Code == c)
+                            {
+                                if (profile != null && req.LoggedIn && !node.ShareAccess.ContainsKey(req.User.Id))
+                                {
+                                    profile.Lock();
+                                    node.ShareAccess[req.User.Id] = false;
+                                    profile.UnlockSave();
+                                }
+                                else req.Cookies.Add($"FilePluginShare_{u}_{pEnc}", c, new() {Expires = Min(node.ShareInvite.Expiration, DateTime.UtcNow.AddDays(14))});
+                                canEdit = false;
+                            }
+                            else
+                            {
+                                RemoveBrokenShare(req, u, p);
+                                MissingFileOrAccess(req, e);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            RemoveBrokenShare(req, u, p);
+                            MissingFileOrAccess(req, e);
+                            break;
+                        }
+                    }
+                    if (!req.UserTable.TryGetValue(u, out var user))
+                    {
+                        RemoveBrokenShare(req, u, p);
+                        MissingFileOrAccess(req, e);
+                        break;
+                    }
+                    page.Navigation.Add(new Button("Back", pluginHome, "right"));
+                    e.Add(new HeadingElement("Shares", $"@{user.Username}{p}"));
+                    if (canEdit)
+                        e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={u}&p={pEnc}"));
+                    e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "default.wfpg" ? string.Join('/', (IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]) : p)}"));
+                    if (req.LoggedIn)
+                    {
+                        userProfile ??= GetOrCreateProfile(req);
+                        if (!userProfile.SavedShares.Any(s => s.UserId == u && s.Path == p))
+                        {
+                            userProfile.Lock();
+                            userProfile.SavedShares.Add(new(u, p));
+                            userProfile.UnlockSave();
+                        }
+                        e.Add(new ButtonElementJS("Remove from saved shares", null, "RemoveShare()", "red"));
+                    }
+                    else e.Add(new ButtonElement(null, "You are viewing this share without logging in. That means you will lose access to it once this link has expired and the owner of this share can't allow you to edit anything.</p><p>Click here to log in.", $"{Server.Config.Accounts.LoginPath}?redirect={HttpUtility.UrlEncode($"{pathPrefix}/shares?u={u}&p={pEnc}")}", "red"));
+                }
+                else
+                {
+                    //list shares
+                    if (!req.LoggedIn)
+                        return -1;
+                    userProfile ??= GetOrCreateProfile(req);
+                    page.Navigation.Add(new Button("Back", pluginHome, "right"));
+                    page.Sidebar =
+                    [
+                        new ButtonElement("Menu:", null, pluginHome),
+                        new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p="),
+                        new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}"),
+                        new ButtonElement(null, "Shares", $"{pathPrefix}/shares", "green")
+                    ];
+                    e.Add(new HeadingElement("Shares"));
+                    if (userProfile.SavedShares.Count == 0)
+                        e.Add(new ContainerElement("No items!", "", "red"));
+                    else foreach (var s in userProfile.SavedShares)
+                        if (s.Path == "")
+                            e.Add(new ButtonElement(req.UserTable.TryGetValue(s.UserId, out var user) ? $"@{user.Username}" : $"[{s.UserId}]", null, $"{pathPrefix}/shares?u={s.UserId}&p={HttpUtility.UrlEncode(s.Path)}"));
+                        else e.Add(new ButtonElement(s.Path.After('/'), (req.UserTable.TryGetValue(s.UserId, out var user) ? $"@{user.Username}" : $"[{s.UserId}]") + s.Path, $"{pathPrefix}/shares?u={s.UserId}&p={HttpUtility.UrlEncode(s.Path)}"));
+                }
             } break;
 
             default:
