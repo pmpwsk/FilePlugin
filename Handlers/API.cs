@@ -33,6 +33,31 @@ public partial class FilePlugin : Plugin
                 profile.UnlockSave();
             } break;
 
+            case "/delete":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                if (parent == null || profile == null)
+                    return 404;
+                profile.Lock();
+                string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
+                if (directory != null)
+                {
+                    profile.SizeUsed -= new DirectoryInfo(loc).GetFiles("*", SearchOption.AllDirectories).Sum(x => x.Length);
+                    parent.Directories.Remove(name);
+                    Directory.Delete(loc, true);
+                }
+                else if (file != null)
+                {
+                    profile.SizeUsed -= new FileInfo(loc).Length;
+                    parent.Files.Remove(name);
+                    File.Delete(loc);
+                }
+                profile.UnlockSave();
+            } break;
+
             case "/load":
             {
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
