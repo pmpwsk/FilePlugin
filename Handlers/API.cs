@@ -113,6 +113,46 @@ public partial class FilePlugin : Plugin
                 profile.UnlockSave();
             } break;
 
+            case "/invite":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                if (req.LoggedIn && u != req.User.Id)
+                    return 403;
+                int e;
+                if (req.Query.TryGetValue("e", out var eString))
+                {
+                    if (!(int.TryParse(eString, out e) && e >= 0))
+                        return 400;
+                }
+                else e = -1;
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out var file, out _);
+                if (profile == null)
+                    return 404;
+                Node node;
+                if (directory != null)
+                    node = directory;
+                else if (file != null)
+                    node = file;
+                else return 404;
+                profile.Lock();
+                switch (e)
+                {
+                    case -1:
+                        node.ShareInvite = null;
+                        break;
+                    case 0:
+                        node.ShareInvite = new(Parsers.RandomString(24), DateTime.MaxValue);
+                        break;
+                    default:
+                        node.ShareInvite = new(Parsers.RandomString(24), DateTime.UtcNow.AddDays(e));
+                        break;
+                }
+                profile.UnlockSave();
+
+            } break;
+
             default:
                 return 404;
         }
