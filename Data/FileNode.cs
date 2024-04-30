@@ -5,8 +5,10 @@ namespace uwap.WebFramework.Plugins;
 public partial class FilePlugin : Plugin
 {
     [DataContract]
-    private class FileNode(DateTime modifiedUtc) : Node
+    private class FileNode(DateTime modifiedUtc, long size) : Node
     {        
         [DataMember] public DateTime ModifiedUtc = modifiedUtc;
+
+        [DataMember] public long Size = size;
     }
 }

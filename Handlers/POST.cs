@@ -25,7 +25,8 @@ public partial class FilePlugin : Plugin
                 long oldSize = new FileInfo(loc).Length;
                 File.WriteAllText(loc, await req.GetBodyText());
                 file.ModifiedUtc = DateTime.UtcNow;
-                profile.SizeUsed += new FileInfo(loc).Length - oldSize;
+                file.Size = new FileInfo(loc).Length;
+                profile.SizeUsed += file.Size - oldSize;
                 profile.UnlockSave();
             } break;
 
@@ -57,13 +58,15 @@ public partial class FilePlugin : Plugin
                     }
                     else
                     {
-                        directory.Files[uploadedFile.FileName] = new(DateTime.UtcNow);
+                        f = new(DateTime.UtcNow, 0);
+                        directory.Files[uploadedFile.FileName] = f;
                         oldSize = 0;
                     }
                     try
                     {
                         uploadedFile.Download(loc, limit);
-                        profile.SizeUsed += new FileInfo(loc).Length - oldSize;
+                        f.Size = new FileInfo(loc).Length;
+                        profile.SizeUsed += f.Size - oldSize;
                     }
                     catch
                     {

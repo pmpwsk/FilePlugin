@@ -30,7 +30,7 @@ public partial class FilePlugin : Plugin
                 else
                 {
                     File.WriteAllText(target, "");
-                    directory.Files.Add(n, new(DateTime.UtcNow));
+                    directory.Files.Add(n, new(DateTime.UtcNow, new FileInfo(target).Length));
                 }
                 profile.UnlockSave();
             } break;
