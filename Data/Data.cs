@@ -5,7 +5,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    private readonly Table<Profile> Table = Table<Profile>.Import("FilePlugin");
+    private readonly ProfileTable Table = ProfileTable.Import("FilePlugin");
 
     private Profile GetOrCreateProfile(IRequest req)
     {
