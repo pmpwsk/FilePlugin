@@ -244,7 +244,7 @@ public partial class FilePlugin : Plugin
                     page.Title = name + " - Files";
                     page.Scripts.Add(new Script(pathPrefix + "/query.js"));
                     page.Scripts.Add(new Script(pathPrefix + "/share.js"));
-                    page.Navigation.Add(new Button("Back", $"{pathPrefix}/edit?u={u}&p={pEnc}", "right"));
+                    page.Navigation.Add(new Button("Back", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
                     if (parent != null)
                     page.Sidebar =
