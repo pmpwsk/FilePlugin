@@ -70,15 +70,21 @@ public partial class FilePlugin : Plugin
                 parent = current;
                 file = f;
             }
+            else
+            {
+                CheckAccess(f);
+                if (hasAccess)
+                    file = f;
+            }
             return true;
         }
         else return false;
 
-        void CheckAccess(DirectoryNode dir)
+        void CheckAccess(Node n)
         {
             if (hasAccess)
                 return;
-            var access = dir.ShareAccess;
+            var access = n.ShareAccess;
             if ((accessKey != null && CheckAccess(accessKey)) || CheckAccess("*"))
                 hasAccess = true;
 
