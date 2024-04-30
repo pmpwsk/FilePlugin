@@ -1,0 +1,11 @@
+div.editor {
+    display: flex; flex-flow: column;
+}
+
+div.editor textarea {
+    flex: 1 1 auto;
+}
+
+div.editor h1, div.editor h2, div.editor div.buttons {
+    flex: 0 1 auto;
+}

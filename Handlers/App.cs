@@ -183,11 +183,7 @@ public partial class FilePlugin : Plugin
                     }
                     else page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/shares')", "right"));
                     page.Navigation.Add(new ButtonJS("More", $"GoTo('{pathPrefix}/more?u={u}&p={pEnc}')", "right"));
-                    page.Styles.Add(new CustomStyle(
-                        "div.editor { display: flex; flex-flow: column; }",
-                        "div.editor textarea { flex: 1 1 auto; }",
-                        "div.editor h1, div.editor h2, div.editor div.buttons { flex: 0 1 auto; }"
-                    ));
+                    page.Styles.Add(new Style(pathPrefix + "/editor.css"));
                     page.HideFooter = true;
                     e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "text", null, onInput: "TextChanged(); Resize();"), classes: "editor", id: "editor")
                     {
