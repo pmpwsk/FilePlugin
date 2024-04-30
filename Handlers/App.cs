@@ -274,7 +274,7 @@ public partial class FilePlugin : Plugin
                         ]});
                     if (node.ShareInvite == null || node.ShareInvite.Expiration < DateTime.UtcNow)
                         e.Add(new ContainerElement("Invite", new TextBox("Expires after x days...", null, "expiration", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
-                    else e.Add(new ContainerElement("Invite", $"Expires: {node.ShareInvite.Expiration.ToLongDateString()}") { Buttons = 
+                    else e.Add(new ContainerElement("Invite", $"Expires: {(node.ShareInvite.Expiration.Year >= 9999 ? "Never" : node.ShareInvite.Expiration.ToLongDateString())}") { Buttons = 
                     [
                         new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.Context.ProtoHost()}{pathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}')"),
                         new ButtonJS("Delete", "DeleteInvite()", "red")
