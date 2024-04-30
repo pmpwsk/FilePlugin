@@ -23,3 +23,39 @@ async function AddNode(d) {
         ShowError("Connection failed.");
     }
 }
+
+async function Upload() {
+    HideError();
+    var files = document.querySelector("#files").files;
+    if (files.length === 0) {
+        ShowError("No files selected!");
+        return;
+    }
+    var form = new FormData();
+    for (var f of files)
+    form.append("file", f);
+    var request = new XMLHttpRequest();
+    request.open("POST", `[PATH_PREFIX]/upload?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
+    request.upload.addEventListener("progress", event => {
+        document.querySelector("#upload").innerText = `${((event.loaded / event.total) * 100).toFixed(2)}%`;
+    });
+    request.onreadystatechange = () => {
+        if (request.readyState == 4) {
+            switch (request.status) {
+                case 200:
+                    document.querySelector('#upload').innerText = 'Done!';
+                    window.location.reload();
+                    break;
+                case 413:
+                    document.querySelector('#upload').innerText = 'Upload';
+                    ShowError("At least one of the selected files is too large!");
+                    break;
+                default:
+                    document.querySelector('#upload').innerText = 'Upload';
+                    ShowError("Connection failed.");
+                    break;
+            }
+        }
+    };
+    request.send(form);
+}
