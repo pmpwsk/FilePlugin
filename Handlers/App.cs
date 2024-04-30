@@ -90,7 +90,18 @@ public partial class FilePlugin : Plugin
                             ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
                         ];
                     }
-                    else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == u ? pluginHome : $"{pathPrefix}/shares", "right"));
+                    else
+                    {
+                        page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == u ? pluginHome : $"{pathPrefix}/shares", "right"));
+                        if (u == req.User.Id)
+                            page.Sidebar =
+                            [
+                                new ButtonElement("Menu:", null, pluginHome),
+                                new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p=", "green"),
+                                new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}"),
+                                new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
+                            ];
+                    }
                     page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     e.Add(new HeadingElement(name, "Edit mode"));
                     e.Add(new ContainerElement("New", new TextBox("Enter a name...", null, "name", onEnter: "AddNode('false')", autofocus: true))
@@ -126,7 +137,18 @@ public partial class FilePlugin : Plugin
                             ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
                         ];
                     }
-                    else page.Navigation.Add(new Button("Back", $"{pathPrefix}/shares", "right"));
+                    else
+                    {
+                        page.Navigation.Add(new Button("Back", $"{pathPrefix}/shares", "right"));
+                        if (u == req.User.Id)
+                            page.Sidebar =
+                            [
+                                new ButtonElement("Menu:", null, pluginHome),
+                                new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p=", "green"),
+                                new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}"),
+                                new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
+                            ];
+                    }
                     if (parent != null || req.LoggedIn)
                         page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     e.Add(new HeadingElement(name, "Edit mode"));
@@ -172,6 +194,14 @@ public partial class FilePlugin : Plugin
                         e.Add(new ButtonElement("Move", null, $"{pathPrefix}/move?u={u}&p={pEnc}"));
                         e.Add(new ButtonElement("Copy", null, $"{pathPrefix}/copy?u={u}&p={pEnc}"));
                     }
+                    else if (u == req.User.Id)
+                        page.Sidebar =
+                        [
+                            new ButtonElement("Menu:", null, pluginHome),
+                            new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p=", "green"),
+                            new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}"),
+                            new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
+                        ];
                     if (u == req.User.Id)
                         e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
                     else if (req.LoggedIn)
@@ -214,7 +244,18 @@ public partial class FilePlugin : Plugin
                             ..parent.Files.Select(fKV => new ButtonElementJS(null, fKV.Key, $"GoTo('{pathPrefix}/editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}')", fKV.Key == name ? "green" : null))
                         ];
                     }
-                    else page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/shares')", "right", id: "back"));
+                    else
+                    {
+                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/shares')", "right", id: "back"));
+                        if (u == req.User.Id)
+                            page.Sidebar =
+                            [
+                                new ButtonElementJS("Menu:", null, $"GoTo('{pluginHome}')"),
+                                new ButtonElementJS(null, "Edit mode", $"GoTo('{pathPrefix}/edit?u={req.User.Id}&p=')", "green"),
+                                new ButtonElementJS(null, "View mode", $"GoTo('{pathPrefix}/@{req.User.Username}')"),
+                                new ButtonElementJS(null, "Shares", $"GoTo('{pathPrefix}/shares')")
+                            ];
+                    }
                     page.Navigation.Add(new ButtonJS("More", $"GoTo('{pathPrefix}/more?u={u}&p={pEnc}')", "right"));
                     page.Styles.Add(new Style(pathPrefix + "/editor.css"));
                     page.HideFooter = true;
@@ -252,6 +293,14 @@ public partial class FilePlugin : Plugin
                             new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
                             ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
                             ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                        ];
+                    else if (u == req.User.Id)
+                        page.Sidebar =
+                        [
+                            new ButtonElement("Menu:", null, pluginHome),
+                            new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p=", "green"),
+                            new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}"),
+                            new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
                         ];
                     e.Add(new HeadingElement(name, "Edit mode > Share"));
                     page.AddError();
@@ -418,7 +467,18 @@ public partial class FilePlugin : Plugin
                                     //don't list files
                                 ];
                             }
-                            else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? pluginHome : $"{pathPrefix}/shares", "right"));
+                            else
+                            {
+                                page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? pluginHome : $"{pathPrefix}/shares", "right"));
+                                if (req.LoggedIn && user.Id == req.User.Id)
+                                    page.Sidebar =
+                                    [
+                                        new ButtonElement("Menu:", null, pluginHome),
+                                        new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p="),
+                                        new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}", "green"),
+                                        new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
+                                    ];
+                            }
                             e.Add(new HeadingElement(name, "View mode"));
                             if (directory.Files.Count == 0 && directory.Directories.Count == 0)
                                 e.Add(new ContainerElement("No items!", "", "red"));
