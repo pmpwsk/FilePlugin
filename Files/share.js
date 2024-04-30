@@ -41,3 +41,36 @@ async function RemoveAccess(uid) {
         ShowError("Connection failed.");
     }
 }
+
+async function CreateInvite() {
+    var expiration = document.querySelector("#expiration").value;
+    if (expiration === "") {
+        ShowError("Enter a number of days for the invite to expire after or 0 to disable expiration.");
+        return;
+    }
+    try {
+        switch ((await fetch(`/api[PATH_PREFIX]/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&e=${expiration}`)).status) {
+            case 200:
+                window.location.reload();
+                break;
+            case 400:
+                ShowError("Invalid expiration.");
+                break;
+            default:
+                ShowError("Connection failed.");
+                break;
+        }
+    } catch {
+        ShowError("Connection failed.");
+    }
+}
+
+async function DeleteInvite() {
+    try {
+        if ((await fetch(`/api[PATH_PREFIX]/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`)).status === 200)
+            window.location.reload();
+        else ShowError("Connection failed.");
+    } catch {
+        ShowError("Connection failed.");
+    }
+}
