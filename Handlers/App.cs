@@ -273,7 +273,7 @@ public partial class FilePlugin : Plugin
                             new ButtonJS("Remove", $"RemoveAccess('{sKV.Key}')", "red")
                         ]});
                     if (node.ShareInvite == null || node.ShareInvite.Expiration < DateTime.UtcNow)
-                        e.Add(new ContainerElement("Invite", new TextBox("Enter a date of expiration...", null, "date", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
+                        e.Add(new ContainerElement("Invite", new TextBox("Expires after x days...", null, "expiration", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
                     else e.Add(new ContainerElement("Invite", $"Expires: {node.ShareInvite.Expiration.ToLongDateString()}") { Buttons = 
                     [
                         new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.Context.ProtoHost()}{pathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}')"),
