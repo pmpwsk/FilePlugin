@@ -16,6 +16,35 @@ public partial class FilePlugin : Plugin
             new Button("Files", pluginHome)
         ];
 
+        Profile? userProfile = null;
+        if (req.LoggedIn)
+            foreach (var cookie in req.Context.Request.Cookies)
+            {
+                if (!cookie.Key.StartsWith("FilePluginShare_"))
+                    continue;
+                if (!req.LoggedIn)
+                    break;
+                if (cookie.Key[16..].SplitAtFirst('_', out var u, out var p))
+                {
+                    p = HttpUtility.UrlDecode(p);
+                    userProfile ??= GetOrCreateProfile(req);
+                    if (!userProfile.SavedShares.Any(s => s.UserId == u && s.Path == p))
+                    {
+                        userProfile.Lock();
+                        userProfile.SavedShares.Add(new(u, p));
+                        userProfile.UnlockSave();
+                    }
+                    var node = FindNode(req, u, p.Split('/'), out var profile);
+                    if (node != null && profile != null && !node.ShareAccess.ContainsKey(req.User.Id))
+                    {
+                        profile.Lock();
+                        node.ShareAccess[req.User.Id] = false;
+                        profile.UnlockSave();
+                    }
+                }
+                req.Cookies.Delete(cookie.Key);
+            }
+
         switch (path)
         {
             case "":
@@ -25,11 +54,11 @@ public partial class FilePlugin : Plugin
                 if (!req.LoggedIn)
                     return -1;
 
-                var profile = GetOrCreateProfile(req);
-                e.Add(new HeadingElement("Files", $"{FileSizeString(profile.SizeUsed)} used"));
+                userProfile ??= GetOrCreateProfile(req);
+                e.Add(new HeadingElement("Files", $"{FileSizeString(userProfile.SizeUsed)} used"));
                 e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={req.User.Id}&p="));
                 e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{req.User.Username}"));
-                if (profile.SavedShares.Count == 0)
+                if (userProfile.SavedShares.Count != 0)
                     e.Add(new ButtonElement("Shared with me", null, pathPrefix + "/shares"));
             } break;
 
@@ -146,8 +175,8 @@ public partial class FilePlugin : Plugin
                         e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
                     else
                     {
-                        var profile = GetOrCreateProfile(req);
-                        if (profile.SavedShares.Any(x => x.Path == p && x.UserId == u))
+                        userProfile ??= GetOrCreateProfile(req);
+                        if (userProfile.SavedShares.Any(x => x.Path == p && x.UserId == u))
                             e.Add(new ButtonElementJS("Remove from saved shares", null, "RemoveShare()", "red"));
                         else e.Add(new ButtonElementJS("Add to saved shares", null, "AddShare()", "green"));
                     }
