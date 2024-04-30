@@ -26,7 +26,7 @@ public partial class FilePlugin : Plugin
                     return -1;
 
                 var profile = GetOrCreateProfile(req);
-                e.Add(new HeadingElement("Files"));
+                e.Add(new HeadingElement("Files", $"{FileSizeString(profile.SizeUsed)} used"));
                 e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={req.User.Id}&p="));
                 e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{req.User.Username}"));
                 if (profile.SavedShares.Count == 0)
@@ -110,6 +110,48 @@ public partial class FilePlugin : Plugin
                 else MissingFileOrAccess(req, e);
             } break;
 
+            case "/more":
+            {
+                //edit mode > more
+                if (!req.LoggedIn)
+                    return -1;
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                string pEnc = HttpUtility.UrlEncode(p);
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (parent != null && (directory != null || file != null))
+                {
+                    page.Title = name + " - Files";
+                    page.Scripts.Add(new Script(pathPrefix + "/query.js"));
+                    page.Scripts.Add(new Script(pathPrefix + "/more.js"));
+                    page.Navigation.Add(new Button("Back", $"{pathPrefix}/edit?u={u}&p={pEnc}", "right"));
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    page.Sidebar =
+                    [
+                        new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
+                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                    ];
+                    e.Add(new HeadingElement(name, "Edit mode > More"));
+                    page.AddError();
+                    e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
+                    e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
+                    e.Add(new ButtonElement("Move", null, $"{pathPrefix}/move?u={u}&p={pEnc}"));
+                    e.Add(new ButtonElement("Copy", null, $"{pathPrefix}/copy?u={u}&p={pEnc}"));
+                    if (u == req.User.Id)
+                        e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
+                    else
+                    {
+                        var profile = GetOrCreateProfile(req);
+                        if (profile.SavedShares.Any(x => x.Path == p && x.UserId == u))
+                            e.Add(new ButtonElementJS("Remove from saved shares", null, "RemoveShare()", "red"));
+                        else e.Add(new ButtonElementJS("Add to saved shares", null, "AddShare()", "green"));
+                    }
+                }
+                else MissingFileOrAccess(req, e);
+            } break;
+
             case "/editor":
             {
                 //edit mode > file > editor
@@ -155,6 +197,62 @@ public partial class FilePlugin : Plugin
                 else MissingFileOrAccess(req, e);
             } break;
 
+            case "/share":
+            {
+                //edit mode > share
+                if (!req.LoggedIn)
+                    return -1;
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                if (u != req.User.Id)
+                    return 403;
+                
+                string pEnc = HttpUtility.UrlEncode(p);
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (parent != null && (directory != null || file != null))
+                {
+                    page.Title = name + " - Files";
+                    page.Scripts.Add(new Script(pathPrefix + "/query.js"));
+                    page.Scripts.Add(new Script(pathPrefix + "/share.js"));
+                    page.Navigation.Add(new Button("Back", $"{pathPrefix}/edit?u={u}&p={pEnc}", "right"));
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    page.Sidebar =
+                    [
+                        new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
+                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                    ];
+                    e.Add(new HeadingElement(name, "Edit mode > Share"));
+                    page.AddError();
+                    e.Add(new ContainerElement("Add access",
+                    [
+                        new TextBox("Enter a username...", "", "name", onEnter: "AddAccess()", autofocus: true),
+                        new Checkbox("Can edit", "edit")
+                    ]) {Button = new ButtonJS("Add", "AddAccess()", "green")});
+                    Node node;
+                    if (directory != null)
+                        node = directory;
+                    else if (file != null)
+                        node = file;
+                    else break;
+                    foreach (var sKV in node.ShareAccess)
+                        e.Add(new ContainerElement(sKV.Key == "*" ? "*" : (req.UserTable.TryGetValue(sKV.Key, out var user) ? user.Username : $"[{sKV.Key}]"), "") { Buttons = 
+                        [
+                            sKV.Value ? new ButtonJS("View/Edit", $"SetAccess('{sKV.Key}', 'false')") : new ButtonJS("View only", $"SetAccess('{sKV.Key}', 'true')"),
+                            new ButtonJS("Remove", $"RemoveAccess('{sKV.Key}')", "red")
+                        ]});
+                    if (node.ShareInvite == null || node.ShareInvite.Expiration < DateTime.UtcNow)
+                        e.Add(new ContainerElement("Invite", new TextBox("Enter a date of expiration...", null, "date", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
+                    else e.Add(new ContainerElement("Invite", $"Expires: {node.ShareInvite.Expiration.ToLongDateString()}") { Buttons = 
+                    [
+                        new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.Context.ProtoHost()}{pathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}')"),
+                        new ButtonJS("Delete", "DeleteInvite()", "red")
+                    ]});
+                }
+                else return 404;
+            } break;
+
             default:
                 if (path.StartsWith("/@"))
                 {
@@ -173,8 +271,12 @@ public partial class FilePlugin : Plugin
                     {
                         //view mode > directory
                         if (directory.Files.TryGetValue("default.wfpg", out file))
+                        {
                             //wfpg (default.wfpg)
+                            page.Title = name;
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/ZGVmYXVsdC53ZnBn"));
+                            page.Title += " - Files";
+                        }
                         else
                         {
                             //list directories and files
@@ -218,8 +320,12 @@ public partial class FilePlugin : Plugin
                         segments[^1] += ".wfpg";
                         CheckAccess(req, user.Id, segments, false, out _, out _, out _, out file, out _);
                         if (file != null)
+                        {
                             //wfpg (not default.wfpg)
+                            page.Title = segments[^1];
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
+                            page.Title += " - Files";
+                        }
                         else MissingFileOrAccess(req, e);
                     }
                 }
