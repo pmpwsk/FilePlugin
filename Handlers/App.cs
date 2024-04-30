@@ -120,12 +120,16 @@ public partial class FilePlugin : Plugin
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
-                if (parent != null && (directory != null || file != null))
+                if (directory != null || file != null)
                 {
                     page.Title = name + " - Files";
                     page.Scripts.Add(new Script(pathPrefix + "/query.js"));
                     page.Scripts.Add(new Script(pathPrefix + "/more.js"));
                     page.Navigation.Add(new Button("Back", $"{pathPrefix}/edit?u={u}&p={pEnc}", "right"));
+                    e.Add(new HeadingElement(name, "Edit mode > More"));
+                    page.AddError();
+                    if (parent != null)
+                    {
                     string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
                     page.Sidebar =
                     [
@@ -133,12 +137,11 @@ public partial class FilePlugin : Plugin
                         ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
                         ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
                     ];
-                    e.Add(new HeadingElement(name, "Edit mode > More"));
-                    page.AddError();
                     e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
                     e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
                     e.Add(new ButtonElement("Move", null, $"{pathPrefix}/move?u={u}&p={pEnc}"));
                     e.Add(new ButtonElement("Copy", null, $"{pathPrefix}/copy?u={u}&p={pEnc}"));
+                    }
                     if (u == req.User.Id)
                         e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
                     else
@@ -206,13 +209,14 @@ public partial class FilePlugin : Plugin
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
-                if (parent != null && (directory != null || file != null))
+                if (directory != null || file != null)
                 {
                     page.Title = name + " - Files";
                     page.Scripts.Add(new Script(pathPrefix + "/query.js"));
                     page.Scripts.Add(new Script(pathPrefix + "/share.js"));
                     page.Navigation.Add(new Button("Back", $"{pathPrefix}/edit?u={u}&p={pEnc}", "right"));
                     string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    if (parent != null)
                     page.Sidebar =
                     [
                         new ButtonElement(null, "Go up a level", $"{pathPrefix}/edit?u={u}&p={parentEnc}"),
