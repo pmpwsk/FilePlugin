@@ -127,6 +127,7 @@ public partial class FilePlugin : Plugin
                         ];
                     }
                     else page.Navigation.Add(new Button("Back", $"{pathPrefix}/shares", "right"));
+                    if (parent != null || req.LoggedIn)
                     page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     e.Add(new HeadingElement(name, "Edit mode"));
                     string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username;
@@ -173,7 +174,7 @@ public partial class FilePlugin : Plugin
                     }
                     if (u == req.User.Id)
                         e.Add(new ButtonElement("Share", null, $"{pathPrefix}/share?u={u}&p={pEnc}"));
-                    else
+                    else if (req.LoggedIn)
                     {
                         userProfile ??= GetOrCreateProfile(req);
                         if (userProfile.SavedShares.Any(x => x.Path == p && x.UserId == u))
