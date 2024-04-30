@@ -254,8 +254,6 @@ public partial class FilePlugin : Plugin
                 {
                     //view mode
                     string[] segments = path[2..].Split('/', '\\').Select(x => HttpUtility.UrlDecode(x)).ToArray();
-                    if (segments.Skip(1).Contains(".."))
-                        return 400;
                     
                     User? user = req.UserTable.FindByUsername(segments[0]);
                     if (user == null)
