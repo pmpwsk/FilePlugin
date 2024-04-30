@@ -367,6 +367,19 @@ public partial class FilePlugin : Plugin
     private static void MissingFileOrAccess(AppRequest req, List<IPageElement> e)
         => e.Add(new LargeContainerElement("Error", "The file/folder you're looking for either doesn't exist or you don't have access to it." + (req.LoggedIn?"":" You are not logged in, that might be the reason."), "red"));
 
+    private void RemoveBrokenShare(AppRequest req, string userId, string path)
+    {
+        if (!req.LoggedIn)
+            return;
+        var profile = GetOrCreateProfile(req);
+        if (profile.SavedShares.Any(s => s.UserId == userId && s.Path == path))
+        {
+            profile.Lock();
+            profile.SavedShares.RemoveAll(s => s.UserId == userId && s.Path == path);
+            profile.UnlockSave();
+        }
+    }
+
     private static string FileSizeString(long size)
     {
         return size switch
