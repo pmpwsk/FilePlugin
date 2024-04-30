@@ -210,6 +210,35 @@ public partial class FilePlugin : Plugin
     private static void MissingFileOrAccess(AppRequest req, List<IPageElement> e)
         => e.Add(new LargeContainerElement("Error", "The file/folder you're looking for either doesn't exist or you don't have access to it." + (req.LoggedIn?"":" You are not logged in, that might be the reason."), "red"));
 
+    private static string FileSizeString(long size)
+    {
+        return size switch
+        {
+            0 => "0 Bytes",
+            1 => "1 Byte",
+            _ => (int)Math.Floor(Math.Log(size, 1024)) switch
+            {
+                0 => $"{size} Bytes",
+                1 => $"{Number(1024)} KiB",
+                2 => $"{Number(1048576)} MiB",
+                3 => $"{Number(1073741824)} GiB",
+                4 => $"{Number(1099511627776)} TiB",
+                5 => $"{Number(1125899906842624)} PiB",
+                _ => $"{Number(1152921504606846976)} EiB"
+            }
+        };
+        
+        string Number(double d)
+        {
+            string result = Math.Round(size / d, 2, MidpointRounding.AwayFromZero).ToString();
+            if (result.SplitAtLast('.', out _, out var r))
+                if (r.Length == 1)
+                    return result + '0';
+                else return result;
+            else return result + ".00";
+        }
+    }
+
     private class EmptyPage : IPage
     {
         public IEnumerable<string> Export(AppRequest request)
