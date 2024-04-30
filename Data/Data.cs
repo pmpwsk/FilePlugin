@@ -111,4 +111,7 @@ public partial class FilePlugin : Plugin
                 => access.TryGetValue(k, out var canEdit) && (canEdit || !wantsEdit);
         }
     }
+
+    private static DateTime Min(DateTime a, DateTime b)
+        => a < b ? a : b;
 }
