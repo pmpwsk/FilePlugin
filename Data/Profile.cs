@@ -11,5 +11,7 @@ public partial class FilePlugin : Plugin
         [DataMember] public List<ShareInfo> SavedShares = [];
 
         [DataMember] public DirectoryNode RootNode = new();
+
+        [DataMember] public long SizeUsed = 0;
     }
 }
