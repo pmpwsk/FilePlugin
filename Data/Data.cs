@@ -1,3 +1,4 @@
+using System.Web;
 using uwap.Database;
 
 namespace uwap.WebFramework.Plugins;
@@ -39,6 +40,7 @@ public partial class FilePlugin : Plugin
 
     private bool CheckAccess(IRequest req, string userId, string[] segments, bool wantsEdit, out Profile? profile, out DirectoryNode? parent, out DirectoryNode? directory, out FileNode? file, out string name)
     {
+        string? path = null;
         string? accessKey = req.LoggedIn ? req.User.Id : null;
         bool hasAccess = accessKey == userId;
         parent = null; directory = null; file = null; name = "?";
@@ -106,6 +108,16 @@ public partial class FilePlugin : Plugin
             var access = n.ShareAccess;
             if ((accessKey != null && CheckAccess(accessKey)) || CheckAccess("*"))
                 hasAccess = true;
+            
+            if ((!wantsEdit) && n.ShareInvite != null && n.ShareInvite.Expiration >= DateTime.UtcNow)
+            {
+                path ??= HttpUtility.UrlEncode(string.Join('/', segments));
+                if (req.Cookies.TryGet($"FilePluginShare_{userId}_{path}") == n.ShareInvite.Code)
+                {
+                    req.Cookies.Add($"FilePluginShare_{userId}_{path}", n.ShareInvite.Code, new() { Expires = Min(n.ShareInvite.Expiration, DateTime.UtcNow.AddDays(14)) });
+                    hasAccess = true;
+                }
+            }
 
             bool CheckAccess(string k)
                 => access.TryGetValue(k, out var canEdit) && (canEdit || !wantsEdit);
