@@ -18,19 +18,19 @@ public partial class FilePlugin : Plugin
                     return 302;
                 if (profile == null)
                     return 500;
-                    profile.Lock();
-                    string target = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, n]).Select(Parsers.ToBase64PathSafe))}";
-                    if (d)
-                    {
-                        Directory.CreateDirectory(target);
-                        directory.Directories.Add(n, new());
-                    }
-                    else
-                    {
-                        File.WriteAllText(target, "");
-                        directory.Files.Add(n, new(DateTime.UtcNow));
-                    }
-                    profile.UnlockSave();
+                profile.Lock();
+                string target = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, n]).Select(Parsers.ToBase64PathSafe))}";
+                if (d)
+                {
+                    Directory.CreateDirectory(target);
+                    directory.Directories.Add(n, new());
+                }
+                else
+                {
+                    File.WriteAllText(target, "");
+                    directory.Files.Add(n, new(DateTime.UtcNow));
+                }
+                profile.UnlockSave();
             } break;
 
             case "/load":
@@ -43,10 +43,47 @@ public partial class FilePlugin : Plugin
                     return 400;
                 if (file == null)
                     return 404;
-                    var content = File.ReadAllText($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
-                    if (content == "")
+                var content = File.ReadAllText($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
+                if (content == "")
                     return 201;
                 await req.Write(content);
+            } break;
+
+            case "/share/set":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                if (u != req.User.Id)
+                    return 403;
+                if (!req.Query.TryGetValue("uid", out var uid))
+                {
+                    if (!req.Query.TryGetValue("un", out var un))
+                        return 400;
+                    if (un == "*")
+                        uid = "*";
+                    else
+                    {
+                        var user = req.UserTable.FindByUsername(un);
+                        if (user == null)
+                            return 404;
+                        uid = user.Id;
+                    }
+                }
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out var file, out _);
+                if (profile == null)
+                    return 404;
+                Dictionary<string,bool> shareAccess;
+                if (directory != null)
+                    shareAccess = directory.ShareAccess;
+                else if (file != null)
+                    shareAccess = file.ShareAccess;
+                else return 404;
+                profile.Lock();
+                if (req.Query.TryGetValue("e", out bool canEdit))
+                    shareAccess[uid] = canEdit;
+                else shareAccess.Remove(uid);
+                profile.UnlockSave();
             } break;
 
             default:
