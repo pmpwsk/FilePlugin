@@ -20,10 +20,13 @@ public partial class FilePlugin : Plugin
                     return 500;
                 if (file == null)
                     return 404;
-                    profile.Lock();
-                    File.WriteAllText($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}", await req.GetBodyText());
-                    file.ModifiedUtc = DateTime.UtcNow;
-                    profile.UnlockSave();
+                profile.Lock();
+                string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
+                long oldSize = new FileInfo(loc).Length;
+                File.WriteAllText(loc, await req.GetBodyText());
+                file.ModifiedUtc = DateTime.UtcNow;
+                profile.SizeUsed += new FileInfo(loc).Length - oldSize;
+                profile.UnlockSave();
             } break;
 
             default:
