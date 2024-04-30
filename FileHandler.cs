@@ -17,7 +17,7 @@ public partial class FilePlugin : Plugin
 		=> relPath switch
 		{
 			"/edit-d.js" => "1714425841761",
-			"/editor.css" => "1714470016095",
+			"/editor.css" => "1714470098815",
 			"/editor.js" => "1714403649548",
 			"/query.js" => "1714256773673",
 			"/share.js" => "1714407791785",
