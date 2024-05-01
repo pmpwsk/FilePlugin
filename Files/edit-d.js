@@ -55,7 +55,7 @@ async function Upload() {
                     break;
                 default:
                     document.querySelector('#upload').innerText = 'Upload';
-                    ShowError("Connection failed.");
+                    ShowError("Connection failed. A possible cause is that at least one of the selected files might be too large.");
                     break;
             }
         }
