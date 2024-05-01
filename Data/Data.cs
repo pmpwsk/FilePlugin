@@ -125,4 +125,7 @@ public partial class FilePlugin : Plugin
 
     private static DateTime Min(DateTime a, DateTime b)
         => a < b ? a : b;
+
+    private static bool NameOkay(string name)
+        => !(name == "" || name == "." || name == ".." || name.Contains('/') || name.Contains('\\'));
 }

@@ -8,10 +8,8 @@ public partial class FilePlugin : Plugin
         {
             case "/add":
             {
-                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p) && req.Query.TryGetValue("n", out var n) && n != "" && req.Query.TryGetValue<bool>("d", out var d)))
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p) && req.Query.TryGetValue("n", out var n) && NameOkay(n) && req.Query.TryGetValue("d", out bool d)))
                     return 400;
-                if (n == "." || n == "..")
-                    return 302;
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
                 if (directory == null)
