@@ -235,18 +235,18 @@ public partial class FilePlugin : Plugin
                     if (parent != null)
                     {
                         string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
-                        string backUrl = $"{pathPrefix}/edit?u={u}&p={parentEnc}";
-                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{backUrl}')", "right", id: "back"));
+                        string parentUrl = $"{pathPrefix}/edit?u={u}&p={parentEnc}";
+                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/edit?u={u}&p={pEnc}')", "right", id: "back"));
                         page.Sidebar =
                         [
-                            new ButtonElementJS(null, "Go up a level", $"GoTo('{backUrl}')"),
+                            new ButtonElementJS(null, "Go up a level", $"GoTo('{parentUrl}')"),
                             ..parent.Directories.Select(dKV => new ButtonElementJS(null, dKV.Key, $"GoTo('{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}')", dKV.Key == name ? "green" : null)),
                             ..parent.Files.Select(fKV => new ButtonElementJS(null, fKV.Key, $"GoTo('{pathPrefix}/editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}')", fKV.Key == name ? "green" : null))
                         ];
                     }
                     else
                     {
-                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/shares')", "right", id: "back"));
+                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/edit?u={u}&p={pEnc}')", "right", id: "back"));
                         if (u == req.User.Id)
                             page.Sidebar =
                             [
