@@ -15,6 +15,9 @@ async function AddNode(d) {
             case 302:
                 ShowError("Another file or directory with this name already exists.");
                 break;
+            case 400:
+                ShowError("Invalid name.");
+                break;
             default:
                 ShowError("Connection failed.");
                 break;
