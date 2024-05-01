@@ -58,6 +58,41 @@ public partial class FilePlugin : Plugin
                 profile.UnlockSave();
             } break;
 
+            case "/rename":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p) && req.Query.TryGetValue("n", out var n) && NameOkay(n)))
+                    return 400;
+                var segments = p.Split('/');
+                if (segments[^1] == n)
+                    return 0;
+                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                if (parent == null || profile == null)
+                    return 404;
+                if (parent.Files.ContainsKey(n) || parent.Directories.ContainsKey(n))
+                    return 302;
+                if (directory != null)
+                {
+                    profile.Lock();
+                    parent.Directories.Remove(name);
+                    parent.Directories[n] = directory;
+                    Directory.Move(
+                        $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}",
+                        $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), n]).Select(Parsers.ToBase64PathSafe))}");
+                    profile.UnlockSave();
+                }
+                else if (file != null)
+                {
+                    profile.Lock();
+                    parent.Files.Remove(name);
+                    parent.Files[n] = file;
+                    File.Move(
+                        $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}",
+                        $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), n]).Select(Parsers.ToBase64PathSafe))}");
+                    profile.UnlockSave();
+                }
+                else return 404;
+            } break;
+
             case "/load":
             {
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
