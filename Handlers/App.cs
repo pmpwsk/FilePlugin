@@ -392,7 +392,7 @@ public partial class FilePlugin : Plugin
                     e.Add(new HeadingElement("Shares", $"@{user.Username}{p}"));
                     if (canEdit)
                         e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={u}&p={pEnc}"));
-                    e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "default.wfpg" ? string.Join('/', (IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]) : p)}"));
+                    e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "default.wfpg" ? string.Join('/', (IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]) : p)}"));
                     if (req.LoggedIn)
                     {
                         userProfile ??= GetOrCreateProfile(req);
