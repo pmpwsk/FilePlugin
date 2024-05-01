@@ -45,3 +45,9 @@ async function SaveName() {
         ShowError("Connection failed.");
     }
 }
+
+function NameChanged() {
+    var rename = document.querySelector("#name-save");
+    rename.className = "green";
+    rename.innerText = "Save";
+}
