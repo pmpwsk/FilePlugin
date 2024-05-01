@@ -11,6 +11,7 @@ public partial class FilePlugin : Plugin
     {
         string pluginHome = pathPrefix == "" ? "/" : pathPrefix;
         page.Favicon = pathPrefix + "/icon.ico";
+        page.Head.Add($"<link rel=\"manifest\" href=\"{pathPrefix}/manifest.json\" />");
         page.Navigation =
         [
             page.Navigation.Count != 0 ? page.Navigation.First() : new Button(req.Domain, "/"),
