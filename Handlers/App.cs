@@ -10,6 +10,7 @@ public partial class FilePlugin : Plugin
     protected override async Task<int> HandleNeatly(AppRequest req, string path, string pathPrefix, Page page, List<IPageElement> e)
     {
         string pluginHome = pathPrefix == "" ? "/" : pathPrefix;
+        page.Favicon = pathPrefix + "/icon.ico";
         page.Navigation =
         [
             page.Navigation.Count != 0 ? page.Navigation.First() : new Button(req.Domain, "/"),
