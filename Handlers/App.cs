@@ -118,7 +118,7 @@ public partial class FilePlugin : Plugin
                         foreach (var dKV in directory.Directories)
                             e.Add(new ButtonElement(dKV.Key, null, $"{pathPrefix}/edit?u={u}&p={pEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}"));
                         foreach (var fKV in directory.Files)
-                            e.Add(new ButtonElement(fKV.Key, fKV.Value.ModifiedUtc.ToLongDateString(), $"{pathPrefix}/edit?u={u}&p={pEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}"));
+                            e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"{pathPrefix}/edit?u={u}&p={pEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}"));
                     }
                 }
                 else if (file != null)
@@ -487,7 +487,7 @@ public partial class FilePlugin : Plugin
                                 foreach (var dKV in directory.Directories)
                                     e.Add(new ButtonElement(dKV.Key, null, $"{req.Path}/{HttpUtility.UrlEncode(dKV.Key)}"));
                                 foreach (var fKV in directory.Files)
-                                    e.Add(new ButtonElement(fKV.Key, fKV.Value.ModifiedUtc.ToLongDateString(), $"{req.Path}/{HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..5] : fKV.Key)}"));
+                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"{req.Path}/{HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..5] : fKV.Key)}"));
                             }
                         }
                     }
