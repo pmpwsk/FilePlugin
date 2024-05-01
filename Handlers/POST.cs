@@ -22,7 +22,7 @@ public partial class FilePlugin : Plugin
                     return 404;
                 profile.Lock();
                 string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
-                long oldSize = new FileInfo(loc).Length;
+                long oldSize = file.Size;
                 File.WriteAllText(loc, await req.GetBodyText());
                 file.ModifiedUtc = DateTime.UtcNow;
                 file.Size = new FileInfo(loc).Length;
@@ -54,7 +54,7 @@ public partial class FilePlugin : Plugin
                     if (directory.Files.TryGetValue(uploadedFile.FileName, out var f))
                     {
                         f.ModifiedUtc = DateTime.UtcNow;
-                        oldSize = new FileInfo(loc).Length;
+                        oldSize = f.Size;
                     }
                     else
                     {
