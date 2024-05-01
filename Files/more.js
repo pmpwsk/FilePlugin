@@ -14,3 +14,34 @@ async function Delete() {
         ShowError("Connection failed.");
     }
 }
+
+async function SaveName() {
+    var rename = document.querySelector("#name-save");
+    var name = document.querySelector("#name").value;
+    if (name === "") {
+        ShowError("Enter a name.");
+        return;
+    }
+    try {
+        var u = GetQuery("u");
+        var p = GetQuery("p");
+        switch ((await fetch(`/api[PATH_PREFIX]/rename?u=${u}&p=${encodeURIComponent(p)}&n=${encodeURIComponent(name)}`)).status) {
+            case 200:
+                rename.className = "";
+                rename.innerText = "Saved!";
+                window.location.assign(`[PATH_PREFIX]/edit?u=${u}&p=${encodeURIComponent(p.split("/").slice(0, -1).join("/") + "/" + name)}`);
+                break;
+            case 302:
+                ShowError("Another file or directory with this name already exists.");
+                break;
+            case 400:
+                ShowError("Invalid name.");
+                break;
+            default:
+                ShowError("Connection failed.");
+                break;
+        }
+    } catch {
+        ShowError("Connection failed.");
+    }
+}
