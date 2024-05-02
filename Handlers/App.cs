@@ -156,8 +156,8 @@ public partial class FilePlugin : Plugin
                     e.Add(new HeadingElement(name, "Edit mode"));
                     string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username;
                     if (segments.Last().EndsWith(".wfpg"))
-                        e.Add(new ButtonElement("View page", null, $"{pathPrefix}/@{username}{(segments.Last() == "default.wfpg" ? string.Join('/', segments.SkipLast(1)) : p[..^5])}"));
-                    e.Add(new ButtonElement("View in browser", null, $"{pathPrefix}/@{username}{p}"));
+                        e.Add(new ButtonElement("View page", null, $"{pathPrefix}/@{username}{(segments.Last() == "index.wfpg" ? string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode)) : string.Join('/', p[..^5].Split('/').Select(HttpUtility.UrlEncode)))}"));
+                    e.Add(new ButtonElement("View in browser", null, $"{pathPrefix}/@{username}{string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode))}"));
                     e.Add(new ButtonElement("Download", null, $"/dl{pathPrefix}?u={u}&p={pEnc}", newTab: true));
                     e.Add(new ButtonElement("Edit as text", null, $"{pathPrefix}/editor?u={u}&p={pEnc}"));
                 }
@@ -489,7 +489,7 @@ public partial class FilePlugin : Plugin
                                 foreach (var dKV in directory.Directories)
                                     e.Add(new ButtonElement(dKV.Key, null, $"{req.Path}/{HttpUtility.UrlEncode(dKV.Key)}"));
                                 foreach (var fKV in directory.Files)
-                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"{req.Path}/{HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..5] : fKV.Key)}"));
+                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"{req.Path}/{HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)}"));
                             }
                         }
                     }
