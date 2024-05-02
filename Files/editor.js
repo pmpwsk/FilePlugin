@@ -71,12 +71,20 @@ async function Save() {
     save.innerText = "Saving...";
     save.className = "green";
     try {
-        if ((await fetch(`[PATH_PREFIX]/save?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", body: ta.value })).status === 200) {
+        switch ((await fetch(`[PATH_PREFIX]/save?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", body: ta.value })).status) {
+            case 200:
             save.innerText = "Saved!";
             save.className = "";
-        } else {
+                break;
+            case 507:
+                save.innerText = "Too long!";
+                save.className = "red";
+                alert("Saving this file would exceed your account's storage limit. Try shortening it or copy the text to save it somewhere else for the time being. You can most likely obtain more storage space by contacting the administrator.");
+                break;
+            default:
             save.innerText = "Error!";
             save.className = "red";
+                break;
         }
     } catch {
         save.innerText = "Error!";

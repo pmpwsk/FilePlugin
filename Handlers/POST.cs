@@ -23,9 +23,17 @@ public partial class FilePlugin : Plugin
                 profile.Lock();
                 string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
                 long oldSize = file.Size;
+                string oldContent = File.ReadAllText(loc);
                 File.WriteAllText(loc, await req.GetBodyText());
-                file.ModifiedUtc = DateTime.UtcNow;
                 file.Size = new FileInfo(loc).Length;
+                if (profile.SizeUsed + file.Size - oldSize > profile.SizeLimit && !req.IsAdmin())
+                {
+                    File.WriteAllText(loc, oldContent);
+                    file.Size = oldSize;
+                    profile.UnlockSave();
+                    return 507;
+                }
+                file.ModifiedUtc = DateTime.UtcNow;
                 profile.SizeUsed += file.Size - oldSize;
                 profile.UnlockSave();
             } break;
@@ -66,6 +74,13 @@ public partial class FilePlugin : Plugin
                     {
                         uploadedFile.Download(loc, limit);
                         f.Size = new FileInfo(loc).Length;
+                        if (profile.SizeUsed + f.Size - oldSize > profile.SizeLimit && !req.IsAdmin())
+                        {
+                            profile.SizeUsed -= oldSize;
+                            directory.Files.Remove(uploadedFile.FileName);
+                            profile.UnlockSave();
+                            return 507;
+                        }
                         profile.SizeUsed += f.Size - oldSize;
                     }
                     catch

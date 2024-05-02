@@ -53,6 +53,10 @@ async function Upload() {
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("At least one of the selected files is too large!");
                     break;
+                case 507:
+                    document.querySelector('#upload').innerText = 'Upload';
+                    ShowError("Uploading these files would exceed your account's storage limit. You can most likely obtain more storage space by contacting the administrator.");
+                    break;
                 default:
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("Connection failed. A possible cause is that at least one of the selected files might be too large.");

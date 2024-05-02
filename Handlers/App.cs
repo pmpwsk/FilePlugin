@@ -57,7 +57,7 @@ public partial class FilePlugin : Plugin
                     return -1;
                 
                 userProfile ??= GetOrCreateProfile(req);
-                e.Add(new HeadingElement("Files", $"{FileSizeString(userProfile.SizeUsed)} used"));
+                e.Add(new HeadingElement("Files", $"{FileSizeString(userProfile.SizeUsed)} / {FileSizeString(userProfile.SizeLimit)} used"));
                 e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={req.User.Id}&p="));
                 e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{req.User.Username}"));
                 if (userProfile.SavedShares.Count != 0)

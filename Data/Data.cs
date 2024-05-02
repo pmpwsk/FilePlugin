@@ -4,6 +4,8 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
+    public long DefaultProfileSizeLimit {get;set;} = 4294967296;
+    
     private readonly ProfileTable Table = ProfileTable.Import("FilePlugin");
 
     private Profile GetOrCreateProfile(IRequest req)
