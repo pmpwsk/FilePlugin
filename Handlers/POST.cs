@@ -72,7 +72,13 @@ public partial class FilePlugin : Plugin
                     }
                     try
                     {
-                        uploadedFile.Download(loc, limit);
+                        if (!uploadedFile.Download(loc, limit))
+                        {
+                            profile.SizeUsed -= oldSize;
+                            directory.Files.Remove(uploadedFile.FileName);
+                            profile.UnlockSave();
+                            return 413;
+                        }
                         f.Size = new FileInfo(loc).Length;
                         if (profile.SizeUsed + f.Size - oldSize > profile.SizeLimit && !req.IsAdmin())
                         {
