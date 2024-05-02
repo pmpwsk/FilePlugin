@@ -305,6 +305,7 @@ public partial class FilePlugin : Plugin
                             new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
                         ];
                     e.Add(new HeadingElement(name, "Edit mode > Share"));
+                    e.Add(new ButtonElementJS(null, "Copy link without inviting", $"navigator.clipboard.writeText('{req.Context.ProtoHost()}{pathPrefix}/shares?u={u}&p={pEnc}'); document.querySelector('#copy').children[0].innerText = 'Copied!'", "green", id: "copy"));
                     page.AddError();
                     e.Add(new ContainerElement("Add access",
                     [
@@ -327,7 +328,7 @@ public partial class FilePlugin : Plugin
                         e.Add(new ContainerElement("Invite", new TextBox("Expires after x days...", null, "expiration", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
                     else e.Add(new ContainerElement("Invite", $"Expires: {(node.ShareInvite.Expiration.Year >= 9999 ? "Never" : node.ShareInvite.Expiration.ToLongDateString())}") { Buttons = 
                     [
-                        new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.Context.ProtoHost()}{pathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}'); document.querySelector('#copy').innerText = 'Copied!'", id: "copy"),
+                        new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.Context.ProtoHost()}{pathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}'); document.querySelector('#copy-invite').innerText = 'Copied!'", id: "copy-invite"),
                         new ButtonJS("Delete", "DeleteInvite()", "red")
                     ]});
                 }
