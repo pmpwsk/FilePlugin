@@ -15,7 +15,7 @@ public partial class FilePlugin : Plugin
             return profile;
 
         Directory.CreateDirectory("../FilePlugin/" + key);
-        profile = new();
+        profile = new(DefaultProfileSizeLimit);
         Table[key] = profile;
         return profile;
     }

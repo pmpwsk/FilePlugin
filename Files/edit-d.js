@@ -1,4 +1,5 @@
 async function AddNode(d) {
+    HideError();
     try {
         var n = encodeURIComponent(document.querySelector("#name").value);
         if (n === "")

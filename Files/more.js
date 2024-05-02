@@ -1,4 +1,5 @@
 async function Delete() {
+    HideError();
     var del = document.querySelector("#delete").children[0];
     if (del.innerText !== "Delete?") {
         del.innerText = "Delete?";
@@ -16,6 +17,7 @@ async function Delete() {
 }
 
 async function SaveName() {
+    HideError();
     var rename = document.querySelector("#name-save");
     var name = document.querySelector("#name").value;
     if (name === "") {

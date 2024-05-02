@@ -1,4 +1,5 @@
-async function AddAccess(uid, canEdit) {
+async function AddAccess() {
+    HideError();
     var un = document.querySelector("#name").value;
     if (un === "") {
         ShowError("Enter a username.");
@@ -23,6 +24,7 @@ async function AddAccess(uid, canEdit) {
 }
 
 async function SetAccess(uid, canEdit) {
+    HideError();
     try {
         if ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}&e=${canEdit}`)).status === 200)
             window.location.reload();
@@ -33,6 +35,7 @@ async function SetAccess(uid, canEdit) {
 }
 
 async function RemoveAccess(uid) {
+    HideError();
     try {
         if ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}`)).status === 200)
             window.location.reload();
@@ -43,6 +46,7 @@ async function RemoveAccess(uid) {
 }
 
 async function CreateInvite() {
+    HideError();
     var expiration = document.querySelector("#expiration").value;
     if (expiration === "") {
         ShowError("Enter a number of days for the invite to expire after or 0 to disable expiration.");
@@ -66,6 +70,7 @@ async function CreateInvite() {
 }
 
 async function DeleteInvite() {
+    HideError();
     try {
         if ((await fetch(`/api[PATH_PREFIX]/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`)).status === 200)
             window.location.reload();
