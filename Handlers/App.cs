@@ -497,6 +497,9 @@ public partial class FilePlugin : Plugin
                     {
                         //view mode > file
                         req.Context.Response.ContentType = segments.Last().SplitAtLast('.', out _, out var extension) && Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
+                        if (req.Context.Request.Headers.TryGetValue("If-None-Match", out var sentEtag) && sentEtag == file.ModifiedUtc.Ticks.ToString())
+                            return 304;
+                        req.Context.Response.Headers.ETag = file.ModifiedUtc.Ticks.ToString();
                         await req.Context.Response.SendFileAsync($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
                         req.Page = new EmptyPage();
                         await req.Finish();
