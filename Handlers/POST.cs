@@ -48,7 +48,7 @@ public partial class FilePlugin : Plugin
                     return 404;
                 if (profile == null)
                     return 500;
-                long limit = req.IsAdmin() ? long.MaxValue : 25000000;
+                long limit = req.IsAdmin() ? long.MaxValue : UploadSizeLimit;
                 req.BodySizeLimit = limit;
                 if ((!req.IsForm) || req.Files.Count == 0)
                     req.Status = 400;

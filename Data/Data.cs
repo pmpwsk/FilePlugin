@@ -6,6 +6,8 @@ public partial class FilePlugin : Plugin
 {
     public long DefaultProfileSizeLimit {get;set;} = 4294967296;
     
+    public long UploadSizeLimit {get;set;} = 26214400;
+
     private readonly ProfileTable Table = ProfileTable.Import("FilePlugin");
 
     private Profile GetOrCreateProfile(IRequest req)
@@ -117,7 +119,7 @@ public partial class FilePlugin : Plugin
                 && req.Cookies.TryGet($"FilePluginShare_{userId}_{pEnc}") == n.ShareInvite.Code)
             {
                 req.Cookies.Add($"FilePluginShare_{userId}_{pEnc}", n.ShareInvite.Code, new() { Expires = Min(n.ShareInvite.Expiration, DateTime.UtcNow.AddDays(14)) });
-                    hasAccess = true;
+                hasAccess = true;
             }
 
             bool CheckAccess(string k)
