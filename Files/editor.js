@@ -80,8 +80,8 @@ async function Save() {
     try {
         switch ((await fetch(`[PATH_PREFIX]/save?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", body: ta.value })).status) {
             case 200:
-            save.innerText = "Saved!";
-            save.className = "";
+                save.innerText = "Saved!";
+                save.className = "";
                 break;
             case 507:
                 save.innerText = "Too long!";
@@ -89,8 +89,8 @@ async function Save() {
                 alert("Saving this file would exceed your account's storage limit. Try shortening it or copy the text to save it somewhere else for the time being. You can most likely obtain more storage space by contacting the administrator.");
                 break;
             default:
-            save.innerText = "Error!";
-            save.className = "red";
+                save.innerText = "Error!";
+                save.className = "red";
                 break;
         }
     } catch {
@@ -99,14 +99,8 @@ async function Save() {
     }
 }
 
-function GoTo(url) {
-    if (save.innerText === "Save")
-        save.className = "red";
-    else window.location.assign(url);
-}
-
-function GoBack(url) {
+function GoBack() {
     if (save.innerText === "Save" && back.innerText == "Back")
         back.innerText = "Discard?";
-    else window.location.assign(url);
+    else window.location.assign(`[PATH_PREFIX]/edit?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
 }

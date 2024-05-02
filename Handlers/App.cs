@@ -238,27 +238,27 @@ public partial class FilePlugin : Plugin
                     {
                         string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
                         string parentUrl = $"{pathPrefix}/edit?u={u}&p={parentEnc}";
-                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/edit?u={u}&p={pEnc}')", "right", id: "back"));
+                        page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
                         page.Sidebar =
                         [
-                            new ButtonElementJS(null, "Go up a level", $"GoTo('{parentUrl}')"),
-                            ..parent.Directories.Select(dKV => new ButtonElementJS(null, dKV.Key, $"GoTo('{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}')", dKV.Key == name ? "green" : null)),
-                            ..parent.Files.Select(fKV => new ButtonElementJS(null, fKV.Key, $"GoTo('{pathPrefix}/editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}')", fKV.Key == name ? "green" : null))
+                            new ButtonElement(null, "Go up a level", parentUrl),
+                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{pathPrefix}/edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"{pathPrefix}/editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
                         ];
                     }
                     else
                     {
-                        page.Navigation.Add(new ButtonJS("Back", $"GoBack('{pathPrefix}/edit?u={u}&p={pEnc}')", "right", id: "back"));
+                        page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
                         if (u == req.User.Id)
                             page.Sidebar =
                             [
-                                new ButtonElementJS("Menu:", null, $"GoTo('{pluginHome}')"),
-                                new ButtonElementJS(null, "Edit mode", $"GoTo('{pathPrefix}/edit?u={req.User.Id}&p=')", "green"),
-                                new ButtonElementJS(null, "View mode", $"GoTo('{pathPrefix}/@{req.User.Username}')"),
-                                new ButtonElementJS(null, "Shares", $"GoTo('{pathPrefix}/shares')")
+                                new ButtonElement("Menu:", null, pluginHome),
+                                new ButtonElement(null, "Edit mode", $"{pathPrefix}/edit?u={req.User.Id}&p=", "green"),
+                                new ButtonElement(null, "View mode", $"{pathPrefix}/@{req.User.Username}"),
+                                new ButtonElement(null, "Shares", $"{pathPrefix}/shares")
                             ];
                     }
-                    page.Navigation.Add(new ButtonJS("More", $"GoTo('{pathPrefix}/more?u={u}&p={pEnc}')", "right"));
+                    page.Navigation.Add(new Button("More", $"{pathPrefix}/more?u={u}&p={pEnc}", "right"));
                     page.Styles.Add(new Style(pathPrefix + "/editor.css"));
                     page.HideFooter = true;
                     e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "text", null, onInput: "TextChanged(); Resize();"), classes: "editor", id: "editor")
