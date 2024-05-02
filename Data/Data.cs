@@ -41,7 +41,7 @@ public partial class FilePlugin : Plugin
 
     private bool CheckAccess(IRequest req, string userId, string[] segments, bool wantsEdit, out Profile? profile, out DirectoryNode? parent, out DirectoryNode? directory, out FileNode? file, out string name)
     {
-        string? path = null;
+        string pEnc = "";
         string? accessKey = req.LoggedIn ? req.User.Id : null;
         bool hasAccess = accessKey == userId;
         parent = null; directory = null; file = null; name = "?";
@@ -53,7 +53,7 @@ public partial class FilePlugin : Plugin
         if (!Table.TryGetValue($"{req.UserTable.Name}_{userId}", out profile))
             return false;
         DirectoryNode? current = profile.RootNode;
-        CheckAccess(current);
+        CheckAccess(current, null);
         if (segments.Length == 1)
         {
             if (hasAccess)
@@ -66,7 +66,7 @@ public partial class FilePlugin : Plugin
         }
         foreach (string segment in segments.Skip(1).SkipLast(1))
             if (current.Directories.TryGetValue(segment, out current))
-                CheckAccess(current);
+                CheckAccess(current, segment);
             else return false;
         name = segments.Last();
         if (current.Directories.TryGetValue(name, out var d))
@@ -79,7 +79,7 @@ public partial class FilePlugin : Plugin
             }
             else
             {
-                CheckAccess(d);
+                CheckAccess(d, name);
                 if (hasAccess)
                     directory = d;
             }
@@ -94,7 +94,7 @@ public partial class FilePlugin : Plugin
             }
             else
             {
-                CheckAccess(f);
+                CheckAccess(f, name);
                 if (hasAccess)
                     file = f;
             }
@@ -102,22 +102,22 @@ public partial class FilePlugin : Plugin
         }
         else return false;
 
-        void CheckAccess(Node n)
+        void CheckAccess(Node n, string? s)
         {
+            if (s != null)
+                pEnc += "%2f" + HttpUtility.UrlEncode(s);
+
             if (hasAccess)
                 return;
             var access = n.ShareAccess;
             if ((accessKey != null && CheckAccess(accessKey)) || CheckAccess("*"))
                 hasAccess = true;
             
-            if ((!wantsEdit) && n.ShareInvite != null && n.ShareInvite.Expiration >= DateTime.UtcNow)
+            if ((!wantsEdit) && n.ShareInvite != null && n.ShareInvite.Expiration >= DateTime.UtcNow
+                && req.Cookies.TryGet($"FilePluginShare_{userId}_{pEnc}") == n.ShareInvite.Code)
             {
-                path ??= HttpUtility.UrlEncode(string.Join('/', segments));
-                if (req.Cookies.TryGet($"FilePluginShare_{userId}_{path}") == n.ShareInvite.Code)
-                {
-                    req.Cookies.Add($"FilePluginShare_{userId}_{path}", n.ShareInvite.Code, new() { Expires = Min(n.ShareInvite.Expiration, DateTime.UtcNow.AddDays(14)) });
+                req.Cookies.Add($"FilePluginShare_{userId}_{pEnc}", n.ShareInvite.Code, new() { Expires = Min(n.ShareInvite.Expiration, DateTime.UtcNow.AddDays(14)) });
                     hasAccess = true;
-                }
             }
 
             bool CheckAccess(string k)
