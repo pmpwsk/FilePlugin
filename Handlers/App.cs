@@ -395,7 +395,7 @@ public partial class FilePlugin : Plugin
                     e.Add(new HeadingElement("Shares", $"@{user.Username}{p}"));
                     if (canEdit)
                         e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={u}&p={pEnc}"));
-                    e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "default.wfpg" ? string.Join('/', (IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]) : p)}"));
+                    e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "index.wfpg" ? string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}"));
                     if (req.LoggedIn)
                     {
                         userProfile ??= GetOrCreateProfile(req);
@@ -448,11 +448,11 @@ public partial class FilePlugin : Plugin
                     if (directory != null)
                     {
                         //view mode > directory
-                        if (directory.Files.TryGetValue("default.wfpg", out file))
+                        if (directory.Files.TryGetValue("index.wfpg", out file))
                         {
-                            //wfpg (default.wfpg)
+                            //wfpg (index.wfpg)
                             page.Title = name;
-                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/ZGVmYXVsdC53ZnBn"));
+                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXgud2ZwZw=="));
                             page.Title += " - Files";
                         }
                         else
@@ -513,7 +513,7 @@ public partial class FilePlugin : Plugin
                         CheckAccess(req, user.Id, segments, false, out _, out _, out _, out file, out _);
                         if (file != null)
                         {
-                            //wfpg (not default.wfpg)
+                            //wfpg (not index.wfpg)
                             page.Title = segments[^1];
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
                             page.Title += " - Files";
