@@ -15,6 +15,13 @@ document.addEventListener('keydown', e => {
         Save();
     }
 });
+window.addEventListener("beforeunload", e => {
+    if (save.innerText === "Save" && back.innerText == "Back") {
+        var confirmationMessage = "You have unsaved changes!";
+        (e || window.event).returnValue = confirmationMessage;
+        return confirmationMessage;
+    }
+});
 
 function Resize() {
     let fullComp = window.getComputedStyle(full);
