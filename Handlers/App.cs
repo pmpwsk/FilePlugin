@@ -406,6 +406,9 @@ public partial class FilePlugin : Plugin
                             userProfile.UnlockSave();
                         }
                         e.Add(new ButtonElementJS("Remove from saved shares", null, "RemoveShare()", "red"));
+                        page.Scripts.Add(new Script(pathPrefix + "/query.js"));
+                        page.Scripts.Add(new Script(pathPrefix + "/shares.js"));
+                        page.AddError();
                     }
                     else e.Add(new ButtonElement(null, "You are viewing this share without logging in. That means you will lose access to it once this link has expired and the owner of this share can't allow you to edit anything.</p><p>Click here to log in.", $"{Server.Config.Accounts.LoginPath}?redirect={HttpUtility.UrlEncode($"{pathPrefix}/shares?u={u}&p={pEnc}")}", "red"));
                 }

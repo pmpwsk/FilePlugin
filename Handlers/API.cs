@@ -113,7 +113,7 @@ public partial class FilePlugin : Plugin
             {
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     return 400;
-                if (req.LoggedIn && u != req.User.Id)
+                if (!(req.LoggedIn && req.User.Id == u))
                     return 403;
                 if (!req.Query.TryGetValue("uid", out var uid))
                 {
@@ -150,7 +150,7 @@ public partial class FilePlugin : Plugin
             {
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     return 400;
-                if (req.LoggedIn && u != req.User.Id)
+                if (!(req.LoggedIn && req.User.Id == u))
                     return 403;
                 int e;
                 if (req.Query.TryGetValue("e", out var eString))
@@ -170,20 +170,42 @@ public partial class FilePlugin : Plugin
                     node = file;
                 else return 404;
                 profile.Lock();
-                switch (e)
+                node.ShareInvite = e switch
                 {
-                    case -1:
-                        node.ShareInvite = null;
-                        break;
-                    case 0:
-                        node.ShareInvite = new(Parsers.RandomString(24), DateTime.MaxValue);
-                        break;
-                    default:
-                        node.ShareInvite = new(Parsers.RandomString(24), DateTime.UtcNow.AddDays(e));
-                        break;
-                }
+                    -1 => null,
+                    0 => new(Parsers.RandomString(24), DateTime.MaxValue),
+                    _ => new(Parsers.RandomString(24), DateTime.UtcNow.AddDays(e)),
+                };
                 profile.UnlockSave();
 
+            } break;
+
+            case "/add-share":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                if (!(req.LoggedIn && req.User.Id != u))
+                    return 403;
+                var profile = GetOrCreateProfile(req);
+                if (profile.SavedShares.Any(s => s.UserId == u && s.Path == p))
+                    return 200;
+                profile.Lock();
+                profile.SavedShares.Add(new(u, p));
+                profile.UnlockSave();
+            } break;
+
+            case "/remove-share":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    return 400;
+                if (!(req.LoggedIn && req.User.Id != u))
+                    return 403;
+                if (!Table.TryGetValue($"{req.UserTable.Name}_{req.User.Id}", out var profile))
+                    return 404;
+                profile.Lock();
+                if (profile.SavedShares.RemoveAll(s => s.UserId == u && s.Path == p) > 0)
+                    profile.UnlockSave();
+                else profile.UnlockIgnore();
             } break;
 
             default:
