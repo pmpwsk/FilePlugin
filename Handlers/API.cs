@@ -249,6 +249,19 @@ public partial class FilePlugin : Plugin
                 profile.UnlockSave();
             } break;
 
+            case "/delete-profile":
+            {
+                if (!req.Query.TryGetValue("u", out var u))
+                    return 400;
+                if (!req.IsAdmin())
+                    return 403;
+                string key = $"{req.UserTable.Name}_{u}";
+                if (!Table.TryGetValue(key, out var profile))
+                    return 404;
+                Directory.Delete("../FilePlugin/" + key, true);
+                Table.Delete(key);
+            } break;
+
             default:
                 return 404;
         }
