@@ -436,6 +436,56 @@ public partial class FilePlugin : Plugin
                 }
             } break;
 
+            case "/profiles":
+            {
+                page.Title = "Profiles - Files";
+                if (!req.IsAdmin())
+                    return 403;
+                if (req.Query.TryGetValue("u", out var u))
+                {
+                    //manage given profile
+                    if (!Table.TryGetValue($"{req.UserTable.Name}_{u}", out var profile))
+                        return 404;
+                    page.Scripts.Add(new Script(pathPrefix + "/profiles.js"));
+                    page.Scripts.Add(new Script(pathPrefix + "/query.js"));
+                    string userTablePrefix = req.UserTable.Name + '_';
+                    page.Sidebar.Add(new ButtonElement("Profiles:", null, pathPrefix + "/profiles"));
+                    List<ButtonElement> sidebarItems = [];
+                    foreach (var kv in Table)
+                        if (kv.Key.StartsWith(userTablePrefix))
+                        {
+                            string userId = kv.Key[userTablePrefix.Length..];
+                            sidebarItems.Add(new ButtonElement(null, req.UserTable.TryGetValue(userId, out var otherUser) ? otherUser.Username : $"[{userId}]", $"{pathPrefix}/profiles?u={userId}", userId == u ? "green" : null));
+                        }
+                    page.Sidebar.AddRange(sidebarItems.OrderBy(x => x.Text));
+                    var user = req.UserTable.TryGet(u);
+                    e.Add(new HeadingElement("Manage profiles", $"{(user != null ? user.Username : $"[{u}]")} ({FileSizeString(profile.SizeUsed)} / {FileSizeString(profile.SizeLimit)})"));
+                    page.AddError();
+                    var limit = profile.SizeLimit;
+                    byte exp = 0;
+                    while (limit % 1024 == 0 && exp++ < 6)
+                        limit /= 1024;
+                    e.Add(new ContainerElement("Size limit", new TextBox("Enter a limit...", $"{limit}{exp switch {0=>"", 1=>"k", 2=>"m", 3=>"g", 4=>"t", 5=>"p", _=>"e"}}", "limit", onEnter: "SaveLimit()", onInput: "ChangedLimit()")) {Button = new ButtonJS("Saved!", "SaveLimit()", id: "save-limit")});
+                    e.Add(new ButtonElementJS("Delete", null, "Delete()", "red", id: "delete"));
+                }
+                else
+                {
+                    //list profiles
+                    e.Add(new HeadingElement("Manage profiles"));
+                    string userTablePrefix = req.UserTable.Name + '_';
+                    List<ButtonElement> items = [];
+                    foreach (var kv in Table)
+                        if (kv.Key.StartsWith(userTablePrefix))
+                        {
+                            string userId = kv.Key[userTablePrefix.Length..];
+                            items.Add(new ButtonElement(req.UserTable.TryGetValue(userId, out var user) ? user.Username : $"[{userId}]", $"{FileSizeString(kv.Value.SizeUsed)} / {FileSizeString(kv.Value.SizeLimit)}", $"{pathPrefix}/profiles?u={userId}"));
+                        }
+                    if (items.Count != 0)
+                        e.AddRange(items.OrderBy(x => x.Title));
+                    else e.Add(new ContainerElement("No items!", "", "red"));
+                }
+            } break;
+
             default:
                 if (path.StartsWith("/@"))
                 {
