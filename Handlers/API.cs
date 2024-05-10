@@ -208,6 +208,47 @@ public partial class FilePlugin : Plugin
                 else profile.UnlockIgnore();
             } break;
 
+            case "/limit":
+            {
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("v", out var v) && v != ""))
+                    return 400;
+                if (!req.IsAdmin())
+                    return 403;
+                if (!Table.TryGetValue($"{req.UserTable.Name}_{u}", out var profile))
+                    return 404;
+                char unit;
+                if ("bkmgtpe".Contains(v[^1]))
+                {
+                    unit = v[^1];
+                    v = v[..^1];
+                }
+                else unit = 'b';
+                if (!long.TryParse(v, out var limit))
+                    return 400;
+                limit *= unit switch
+                {
+                    'b' => 1,
+                    'k' => 1024,
+                    'm' => 1048576,
+                    'g' => 1073741824,
+                    't' => 1099511627776,
+                    'p' => 1125899906842624,
+                    _ => 1152921504606846976
+                };
+                var checkLimit = limit;
+                byte exp = 0;
+                while (checkLimit % 1024 == 0 && "bkmgtpe"[exp] != unit)
+                {
+                    checkLimit /= 1024;
+                    exp++;
+                }
+                if (checkLimit.ToString() != v || "bkmgtpe"[exp] != unit)
+                    return 400;
+                profile.Lock();
+                profile.SizeLimit = limit;
+                profile.UnlockSave();
+            } break;
+
             default:
                 return 404;
         }
