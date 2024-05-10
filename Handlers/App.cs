@@ -62,6 +62,8 @@ public partial class FilePlugin : Plugin
                 e.Add(new ButtonElement("View mode", null, $"{pathPrefix}/@{req.User.Username}"));
                 if (userProfile.SavedShares.Count != 0)
                     e.Add(new ButtonElement("Shared with me", null, pathPrefix + "/shares"));
+                if (req.IsAdmin())
+                    e.Add(new ButtonElement("Manage profiles", null, pathPrefix + "/profiles"));
             } break;
 
             case "/edit":
