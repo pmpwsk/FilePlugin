@@ -43,10 +43,16 @@ function Refocus() {
 
 async function Load() {
     try {
-        let response = await fetch(`/api[PATH_PREFIX]/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
+        let response = await fetch(`/api[PATH_PREFIX]/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, {cache:"no-store"});
         switch (response.status) {
             case 200:
-                ta.value = await response.text();
+                var value = await response.text();
+                if (save.innerText === "Save") {
+                    if (ta.value === value) {
+                        save.innerText = "Saved!";
+                        save.className = "";
+                    }
+                } else ta.value = value;
                 ta.placeholder = "Enter something...";
                 break;
             case 201:
