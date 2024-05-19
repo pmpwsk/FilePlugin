@@ -1,3 +1,5 @@
+let changedAlready = false;
+let savedValue = null;
 let ch = 0;
 let ta = document.querySelector('#text');
 let editor = document.querySelector('#editor');
@@ -46,19 +48,17 @@ async function Load() {
         let response = await fetch(`/api[PATH_PREFIX]/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, {cache:"no-store"});
         switch (response.status) {
             case 200:
-                var value = await response.text();
+            case 201:
+                savedValue = response.status === 201 ? "" : await response.text();
                 if (save.innerText === "Save") {
-                    if (ta.value === value) {
+                    if (ta.value === savedValue) {
                         save.innerText = "Saved!";
                         save.className = "";
                     }
-                } else ta.value = value;
+                } else ta.value = savedValue;
                 ta.placeholder = "Enter something...";
-                break;
-            case 201:
-                ta.value = "";
-                ta.placeholder = "Enter something...";
-                ta.focus();
+                if (ta.value === "")
+                    ta.focus();
                 break;
             default:
                 ta.value = "";
@@ -75,8 +75,12 @@ async function Load() {
 }
 
 function TextChanged() {
-    save.innerText = "Save";
-    save.className = "green";
+    if (changedAlready || ta.value !== savedValue) {
+        save.innerText = "Save";
+        save.className = "green";
+        changedAlready = true;
+        savedValue = null;
+    }
 }
 
 async function Save() {
