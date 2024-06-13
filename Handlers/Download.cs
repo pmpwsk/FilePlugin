@@ -11,7 +11,7 @@ public partial class FilePlugin : Plugin
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     return 400;
                 var segments = p.Split('/');
-                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                CheckAccess(req, u, segments, false, out var profile, out var parent, out var directory, out var file, out var name);
                 if (directory != null)
                     return 400;
                 if (profile == null)
