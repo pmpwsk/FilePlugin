@@ -552,10 +552,23 @@ public partial class FilePlugin : Plugin
                     else if (file != null)
                     {
                         //view mode > file
-                        req.Context.Response.ContentType = segments.Last().SplitAtLast('.', out _, out var extension) && Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
-                        if (req.Context.Request.Headers.TryGetValue("If-None-Match", out var sentEtag) && sentEtag == file.ModifiedUtc.Ticks.ToString())
-                            return 304;
-                        req.Context.Response.Headers.ETag = file.ModifiedUtc.Ticks.ToString();
+                        if (segments.Last().SplitAtLast('.', out _, out var extension))
+                        {
+                            req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
+                            if (Server.Config.BrowserCacheMaxAge.TryGetValue('.' + extension, out int maxAge))
+                            {
+                                if (maxAge == 0)
+                                    req.Context.Response.Headers.CacheControl = "no-cache, private";
+                                else
+                                {
+                                    string timestamp = file.ModifiedUtc.Ticks.ToString();
+                                    req.Context.Response.Headers.CacheControl = "public, max-age=" + maxAge;
+                                    if (req.Context.Request.Headers.TryGetValue("If-None-Match", out var oldTag) && oldTag == timestamp)
+                                        return 304;
+                                    else req.Context.Response.Headers.ETag = timestamp;
+                                }
+                            }
+                        }
                         await req.Context.Response.SendFileAsync($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
                         req.Page = new EmptyPage();
                         await req.Finish();
