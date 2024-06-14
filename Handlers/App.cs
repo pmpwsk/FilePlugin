@@ -397,7 +397,7 @@ public partial class FilePlugin : Plugin
                     e.Add(new HeadingElement("Shares", $"@{user.Username}{p}"));
                     if (canEdit)
                         e.Add(new ButtonElement("Edit mode", null, $"{pathPrefix}/edit?u={u}&p={pEnc}"));
-                    e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "index.wfpg" ? string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}"));
+                    e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"{pathPrefix}/@{user.Username}{(segments.Last().EndsWith(".wfpg") && segments.Last() != "index.wfpg" ? string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}", canEdit ? null : "green"));
                     if (!canEdit)
                         e.Add(new ButtonElement("Download", null, $"/dl{pathPrefix}?u={u}&p={pEnc}"));
                     if (req.LoggedIn)
