@@ -1,0 +1,121 @@
+using System.Web;
+using uwap.WebFramework.Elements;
+
+namespace uwap.WebFramework.Plugins;
+
+public partial class FilePlugin : Plugin
+{
+    private async Task Editor(Request req)
+    {
+        switch (req.Path)
+        {
+            case "/editor":
+            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
+                //edit mode > file > editor
+                req.ForceLogin();
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    throw new BadRequestSignal();
+                string pEnc = HttpUtility.UrlEncode(p);
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (directory != null)
+                    throw new BadRequestSignal();
+                else if (file != null)
+                {
+                    page.Title = name + " - Files";
+                    page.Scripts.Add(new Script("query.js"));
+                    page.Scripts.Add(new Script("editor.js"));
+                    if (parent != null)
+                    {
+                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                        string parentUrl = $"edit?u={u}&p={parentEnc}";
+                        page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
+                        page.Sidebar =
+                        [
+                            new ButtonElement(null, "Go up a level", parentUrl),
+                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                        ];
+                    }
+                    else
+                    {
+                        page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
+                        if (u == req.User.Id)
+                            page.Sidebar =
+                            [
+                                new ButtonElement("Menu:", null, "."),
+                                new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p=", "green"),
+                                new ButtonElement(null, "View mode", $"@{req.User.Username}"),
+                                new ButtonElement(null, "Shares", "shares")
+                            ];
+                    }
+                    page.Navigation.Add(new Button("More", $"more?u={u}&p={pEnc}", "right"));
+                    page.Styles.Add(new Style("editor.css"));
+                    page.HideFooter = true;
+                    e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "text", null, onInput: "TextChanged(); Resize();"), classes: "editor", id: "editor")
+                    {
+                        Button = new ButtonJS("Saved!", $"Save()", null, id: "save")
+                    });
+                }
+                else MissingFileOrAccess(req, e);
+            } break;
+
+            case "/editor/load":
+            { req.ForcePOST();
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    throw new BadRequestSignal();
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (directory != null)
+                    throw new BadRequestSignal();
+                if (file == null)
+                    throw new NotFoundSignal();
+                var content = File.ReadAllText($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
+                if (content == "")
+                    throw new HttpStatusSignal(201);
+                await req.Write(content);
+            } break;
+
+            case "/editor/save":
+            { req.ForcePOST();
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    throw new BadRequestSignal();
+                if (req.IsForm)
+                    throw new BadRequestSignal();
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                if (directory != null)
+                    throw new BadRequestSignal();
+                if (profile == null)
+                    throw new ServerErrorSignal();
+                if (file == null)
+                    throw new NotFoundSignal();
+                profile.Lock();
+                string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
+                long oldSize = file.Size;
+                string oldContent = File.ReadAllText(loc);
+                File.WriteAllText(loc, await req.GetBodyText());
+                file.Size = new FileInfo(loc).Length;
+                if (profile.SizeUsed + file.Size - oldSize > profile.SizeLimit && !req.IsAdmin)
+                {
+                    File.WriteAllText(loc, oldContent);
+                    file.Size = oldSize;
+                    profile.UnlockSave();
+                    throw new HttpStatusSignal(507);
+                }
+                file.ModifiedUtc = DateTime.UtcNow;
+                profile.SizeUsed += file.Size - oldSize;
+                profile.UnlockSave();
+            } break;
+
+
+
+
+            // 404
+            default:
+                req.CreatePage("Error");
+                req.Status = 404;
+                break;
+        }
+    }
+}

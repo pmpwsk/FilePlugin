@@ -10,7 +10,7 @@ public partial class FilePlugin : Plugin
 
     private readonly ProfileTable Table = ProfileTable.Import("FilePlugin");
 
-    private Profile GetOrCreateProfile(IRequest req)
+    private Profile GetOrCreateProfile(Request req)
     {
         string key = $"{req.UserTable.Name}_{req.User.Id}";
         if (Table.TryGetValue(key, out var profile))
@@ -22,15 +22,13 @@ public partial class FilePlugin : Plugin
         return profile;
     }
 
-    private Node? FindNode(IRequest req, string userId, string[] segments, out Profile? profile)
+    private Node? FindNode(Request req, string userId, string[] segments, out Profile? profile)
     {
         if (!Table.TryGetValue($"{req.UserTable.Name}_{userId}", out profile))
             return null;
         DirectoryNode? current = profile.RootNode;
         if (segments.Length == 1)
-        {
             return current;
-        }
         foreach (string segment in segments.Skip(1).SkipLast(1))
             if (!current.Directories.TryGetValue(segment, out current))
                 return null;
@@ -41,7 +39,7 @@ public partial class FilePlugin : Plugin
         else return null;
     }
 
-    private bool CheckAccess(IRequest req, string userId, string[] segments, bool wantsEdit, out Profile? profile, out DirectoryNode? parent, out DirectoryNode? directory, out FileNode? file, out string name)
+    private bool CheckAccess(Request req, string userId, string[] segments, bool wantsEdit, out Profile? profile, out DirectoryNode? parent, out DirectoryNode? directory, out FileNode? file, out string name)
     {
         string pEnc = "";
         string? accessKey = req.LoggedIn ? req.User.Id : null;

@@ -5,7 +5,7 @@ async function SaveLimit() {
     if (value === "") {
         ShowError("Enter a limit.");
     } else try {
-        switch ((await fetch(`/api[PATH_PREFIX]/limit?u=${GetQuery("u")}&v=${encodeURIComponent(value)}`)).status) {
+        switch (await SendRequest(`profiles/limit?u=${GetQuery("u")}&v=${encodeURIComponent(value)}`, "POST", true)) {
             case 200:
                 button.className = "";
                 button.innerText = "Saved!";
@@ -36,8 +36,8 @@ async function Delete() {
     if (deleteText.textContent === "Delete")
         deleteText.textContent = "Delete everything?";
     else try {
-        if ((await fetch(`/api[PATH_PREFIX]/delete-profile?u=${GetQuery("u")}`)).status === 200)
-            window.location.assign("[PATH_PREFIX]/profiles");
+        if (await SendRequest(`profiles/delete?u=${GetQuery("u")}`, "POST", true) === 200)
+            window.location.assign("profiles");
         else ShowError("Connection failed.");
     } catch {
         ShowError("Connection failed.");

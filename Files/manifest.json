@@ -1,7 +1,7 @@
 {
     "name": "Files ([DOMAIN_MAIN])",
     "short_name": "Files",
-    "start_url": "[PATH_HOME]",
+    "start_url": "[PATH_PREFIX]/",
     "display": "minimal-ui",
     "background_color": "#000000",
     "theme_color": "#202024",

@@ -9,9 +9,9 @@ async function AddNode(d) {
         }
         var u = GetQuery("u");
         var p = encodeURIComponent(GetQuery("p"));
-        switch ((await fetch(`/api[PATH_PREFIX]/add?u=${u}&p=${p}&n=${n}&d=${d}`)).status) {
+        switch (await SendRequest(`edit/add?u=${u}&p=${p}&n=${n}&d=${d}`, "POST", true)) {
             case 200:
-                window.location.assign(`[PATH_PREFIX]/edit?u=${u}&p=${p}%2f${n}`)
+                window.location.assign(`edit?u=${u}&p=${p}%2f${n}`)
                 break;
             case 302:
                 ShowError("Another file or directory with this name already exists.");
@@ -39,7 +39,7 @@ async function Upload() {
     for (var f of files)
     form.append("file", f);
     var request = new XMLHttpRequest();
-    request.open("POST", `[PATH_PREFIX]/upload?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
+    request.open("POST", `edit/upload?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
     request.upload.addEventListener("progress", event => {
         document.querySelector("#upload").innerText = `${((event.loaded / event.total) * 100).toFixed(2)}%`;
     });

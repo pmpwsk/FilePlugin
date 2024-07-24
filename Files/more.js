@@ -8,8 +8,8 @@ async function Delete() {
     try {
         var u = GetQuery("u");
         var p = GetQuery("p");
-        if ((await fetch(`/api[PATH_PREFIX]/delete?u=${u}&p=${encodeURIComponent(p)}`)).status === 200)
-            window.location.assign(`[PATH_PREFIX]/edit?u=${u}&p=${encodeURIComponent(p.split("/").slice(0, -1).join("/"))}`);
+        if (await SendRequest(`more/delete?u=${u}&p=${encodeURIComponent(p)}`, "POST", true) === 200)
+            window.location.assign(`edit?u=${u}&p=${encodeURIComponent(p.split("/").slice(0, -1).join("/"))}`);
         else ShowError("Connection failed.");
     } catch {
         ShowError("Connection failed.");
@@ -27,11 +27,11 @@ async function SaveName() {
     try {
         var u = GetQuery("u");
         var p = GetQuery("p");
-        switch ((await fetch(`/api[PATH_PREFIX]/rename?u=${u}&p=${encodeURIComponent(p)}&n=${encodeURIComponent(name)}`)).status) {
+        switch (await SendRequest(`more/rename?u=${u}&p=${encodeURIComponent(p)}&n=${encodeURIComponent(name)}`, "POST", true)) {
             case 200:
                 rename.className = "";
                 rename.innerText = "Saved!";
-                window.location.assign(`[PATH_PREFIX]/edit?u=${u}&p=${encodeURIComponent(p.split("/").slice(0, -1).join("/") + "/" + name)}`);
+                window.location.assign(`edit?u=${u}&p=${encodeURIComponent(p.split("/").slice(0, -1).join("/") + "/" + name)}`);
                 break;
             case 302:
                 ShowError("Another file or directory with this name already exists.");
@@ -57,7 +57,7 @@ function NameChanged() {
 async function AddShare() {
     HideError();
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/add-share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`)).status === 200)
+        if (await SendRequest(`shares/add?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, "POST", true) === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {
@@ -68,7 +68,7 @@ async function AddShare() {
 async function RemoveShare() {
     HideError();
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/remove-share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`)).status === 200)
+        if (await SendRequest(`shares/remove?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, "POST", true) === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {

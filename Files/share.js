@@ -7,7 +7,7 @@ async function AddAccess() {
     }
     var canEdit = document.querySelector("#edit").checked;
     try {
-        switch ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&un=${un}&e=${canEdit}`)).status) {
+        switch (await SendRequest(`share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&un=${un}&e=${canEdit}`, "POST", true)) {
             case 200:
                 window.location.reload();
                 break;
@@ -26,7 +26,7 @@ async function AddAccess() {
 async function SetAccess(uid, canEdit) {
     HideError();
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}&e=${canEdit}`)).status === 200)
+        if (await SendRequest(`share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}&e=${canEdit}`, "POST", true) === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {
@@ -37,7 +37,7 @@ async function SetAccess(uid, canEdit) {
 async function RemoveAccess(uid) {
     HideError();
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/share?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}`)).status === 200)
+        if (await SendRequest(`share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&uid=${uid}`, "POST", true) === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {
@@ -53,7 +53,7 @@ async function CreateInvite() {
         return;
     }
     try {
-        switch ((await fetch(`/api[PATH_PREFIX]/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&e=${expiration}`)).status) {
+        switch (await SendRequest(`share/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&e=${expiration}`, "POST", true)) {
             case 200:
                 window.location.reload();
                 break;
@@ -72,7 +72,7 @@ async function CreateInvite() {
 async function DeleteInvite() {
     HideError();
     try {
-        if ((await fetch(`/api[PATH_PREFIX]/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`)).status === 200)
+        if (await SendRequest(`share/invite?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, "POST", true) === 200)
             window.location.reload();
         else ShowError("Connection failed.");
     } catch {

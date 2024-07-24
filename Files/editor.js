@@ -45,7 +45,7 @@ function Refocus() {
 
 async function Load() {
     try {
-        let response = await fetch(`/api[PATH_PREFIX]/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, {cache:"no-store"});
+        let response = await fetch(`editor/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", cache:"no-store"});
         switch (response.status) {
             case 200:
             case 201:
@@ -88,7 +88,7 @@ async function Save() {
     save.innerText = "Saving...";
     save.className = "green";
     try {
-        switch ((await fetch(`[PATH_PREFIX]/save?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", body: ta.value })).status) {
+        switch ((await fetch(`editor/save?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", body: ta.value })).status) {
             case 200:
                 save.innerText = "Saved!";
                 save.className = "";
@@ -112,5 +112,5 @@ async function Save() {
 function GoBack() {
     if (save.innerText === "Save" && back.innerText == "Back")
         back.innerText = "Discard?";
-    else window.location.assign(`[PATH_PREFIX]/edit?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
+    else window.location.assign(`edit?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
 }
