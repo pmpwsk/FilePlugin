@@ -6,7 +6,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    private async Task Other(Request req)
+    private async Task HandleOther(Request req)
     {
         switch (req.Path)
         {

@@ -1,5 +1,3 @@
-using uwap.WebFramework.Elements;
-
 namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
@@ -10,7 +8,7 @@ public partial class FilePlugin : Plugin
         {
             // EDIT MODE
             case "edit":
-                await Edit(req);
+                await HandleEdit(req);
                 break;
 
 
@@ -18,7 +16,7 @@ public partial class FilePlugin : Plugin
 
             // EDIT MODE > EDITOR
             case "editor":
-                await Editor(req);
+                await HandleEditor(req);
                 break;
 
 
@@ -26,7 +24,7 @@ public partial class FilePlugin : Plugin
 
             // EDIT MODE > MORE
             case "more":
-                await More(req);
+                await HandleMore(req);
                 break;
 
 
@@ -34,7 +32,7 @@ public partial class FilePlugin : Plugin
 
             // MANAGE PROFILES
             case "profiles":
-                await Profiles(req);
+                await HandleProfiles(req);
                 break;
 
 
@@ -42,7 +40,7 @@ public partial class FilePlugin : Plugin
 
             // EDIT MODE > SHARE
             case "share":
-                await Share(req);
+                await HandleShare(req);
                 break;
 
 
@@ -50,7 +48,7 @@ public partial class FilePlugin : Plugin
 
             // SHARES
             case "shares":
-                await Shares(req);
+                await HandleShares(req);
                 break;
 
 
@@ -58,7 +56,7 @@ public partial class FilePlugin : Plugin
 
             // MAIN PAGE / DOWNLOAD / VIEW MODE / 404
             default:
-                await Other(req);
+                await HandleOther(req);
                 break;
         }
     }

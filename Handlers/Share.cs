@@ -5,7 +5,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    private Task Share(Request req)
+    private Task HandleShare(Request req)
     {
         switch (req.Path)
         {
