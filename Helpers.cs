@@ -14,7 +14,7 @@ public partial class FilePlugin : Plugin
         page.Navigation =
         [
             page.Navigation.Count != 0 ? page.Navigation.First() : new Button(req.Domain, "/"),
-            new Button("Files", req.PluginPathPrefix)
+            new Button("Files", $"{req.PluginPathPrefix}/")
         ];
         userProfile = null;
         if (req.LoggedIn)
