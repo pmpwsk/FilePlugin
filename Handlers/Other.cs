@@ -101,9 +101,9 @@ public partial class FilePlugin : Plugin
                             else
                             {
                                 foreach (var dKV in directory.Directories)
-                                    e.Add(new ButtonElement(dKV.Key, null, $"{req.Path}/{HttpUtility.UrlEncode(dKV.Key)}"));
+                                    e.Add(new ButtonElement(dKV.Key, null, $"{req.PluginPathPrefix}{req.Path}/{HttpUtility.UrlEncode(dKV.Key)}"));
                                 foreach (var fKV in directory.Files)
-                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"{req.Path}/{HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)}"));
+                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"{req.PluginPathPrefix}{req.Path}/{HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)}"));
                             }
                         }
                     }
