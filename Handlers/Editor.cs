@@ -61,7 +61,7 @@ public partial class FilePlugin : Plugin
             } break;
 
             case "/editor/load":
-            { req.ForcePOST();
+            { req.ForceGET();
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 var segments = p.Split('/');

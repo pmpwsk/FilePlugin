@@ -45,7 +45,7 @@ function Refocus() {
 
 async function Load() {
     try {
-        let response = await fetch(`editor/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, { method: "POST", cache:"no-store"});
+        let response = await fetch(`editor/load?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`, {cache:"no-store"});
         switch (response.status) {
             case 200:
             case 201:
