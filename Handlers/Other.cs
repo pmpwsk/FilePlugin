@@ -40,7 +40,7 @@ public partial class FilePlugin : Plugin
                     throw new ServerErrorSignal();
                 if (file == null)
                     throw new NotFoundSignal();
-                await req.WriteFileAsDownload($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}", name);
+                await req.WriteFileAsDownload($"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}", name);
             } break;
 
 
@@ -65,7 +65,7 @@ public partial class FilePlugin : Plugin
                         {
                             //wfpg (index.wfpg)
                             page.Title = name;
-                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXgud2ZwZw=="));
+                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXgud2ZwZw=="));
                             page.Title += " - Files";
                         }
                         else
@@ -128,7 +128,7 @@ public partial class FilePlugin : Plugin
                                 }
                             }
                         }
-                        await req.WriteFile($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
+                        await req.WriteFile($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
                     }
                     else if (exists)
                         MissingFileOrAccess(req, e);
@@ -140,7 +140,7 @@ public partial class FilePlugin : Plugin
                         {
                             //wfpg (not index.wfpg)
                             page.Title = segments[^1];
-                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
+                            Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
                             page.Title += " - Files";
                         }
                         else MissingFileOrAccess(req, e);

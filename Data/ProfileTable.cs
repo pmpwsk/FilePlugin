@@ -41,12 +41,12 @@ public partial class FilePlugin : Plugin
 
         protected override IEnumerable<string> EnumerateDirectoriesToClear()
         {
-            yield return "../FilePlugin";
+            yield return "../FilePlugin.Profiles";
         }
 
         protected override IEnumerable<string> EnumerateOtherDirectories(TableEntry<Profile> entry)
         {
-            yield return $"../FilePlugin/{entry.Key}";
+            yield return $"../FilePlugin.Profiles/{entry.Key}";
         }
     }
 }

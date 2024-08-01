@@ -107,7 +107,7 @@ public partial class FilePlugin : Plugin
                 string key = $"{req.UserTable.Name}_{u}";
                 if (!Table.TryGetValue(key, out var profile))
                     throw new NotFoundSignal();
-                Directory.Delete("../FilePlugin/" + key, true);
+                Directory.Delete("../FilePlugin.Profiles/" + key, true);
                 Table.Delete(key);
             } break;
 

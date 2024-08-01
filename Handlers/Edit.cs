@@ -122,7 +122,7 @@ public partial class FilePlugin : Plugin
                 if (profile == null)
                     throw new ServerErrorSignal();
                 profile.Lock();
-                string target = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, n]).Select(Parsers.ToBase64PathSafe))}";
+                string target = $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, n]).Select(Parsers.ToBase64PathSafe))}";
                 if (d)
                 {
                     Directory.CreateDirectory(target);
@@ -155,7 +155,7 @@ public partial class FilePlugin : Plugin
                 {
                     if (!NameOkay(uploadedFile.FileName))
                         continue;
-                    string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, uploadedFile.FileName]).Select(Parsers.ToBase64PathSafe))}";
+                    string loc = $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, uploadedFile.FileName]).Select(Parsers.ToBase64PathSafe))}";
                     long oldSize;
                     if (directory.Files.TryGetValue(uploadedFile.FileName, out var f))
                     {

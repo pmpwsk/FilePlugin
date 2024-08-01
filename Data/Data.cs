@@ -8,7 +8,7 @@ public partial class FilePlugin : Plugin
     
     public long UploadSizeLimit {get;set;} = 26214400;
 
-    private readonly ProfileTable Table = ProfileTable.Import("FilePlugin");
+    private readonly ProfileTable Table = ProfileTable.Import("FilePlugin.Profiles");
 
     private Profile GetOrCreateProfile(Request req)
     {
@@ -16,7 +16,7 @@ public partial class FilePlugin : Plugin
         if (Table.TryGetValue(key, out var profile))
             return profile;
 
-        Directory.CreateDirectory("../FilePlugin/" + key);
+        Directory.CreateDirectory("../FilePlugin.Profiles/" + key);
         profile = new(DefaultProfileSizeLimit);
         Table[key] = profile;
         return profile;

@@ -70,7 +70,7 @@ public partial class FilePlugin : Plugin
                     throw new BadRequestSignal();
                 if (file == null)
                     throw new NotFoundSignal();
-                var content = File.ReadAllText($"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
+                var content = File.ReadAllText($"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
                 if (content == "")
                     throw new HttpStatusSignal(201);
                 await req.Write(content);
@@ -91,7 +91,7 @@ public partial class FilePlugin : Plugin
                 if (file == null)
                     throw new NotFoundSignal();
                 profile.Lock();
-                string loc = $"../FilePlugin/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
+                string loc = $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
                 long oldSize = file.Size;
                 string oldContent = File.ReadAllText(loc);
                 File.WriteAllText(loc, await req.GetBodyText());
