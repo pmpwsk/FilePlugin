@@ -25,7 +25,7 @@ public partial class FilePlugin : Plugin
 		{
 			"/edit-d.js" => "1721685104637",
 			"/editor.css" => "1714470098815",
-			"/editor.js" => "1721768074955",
+			"/editor.js" => "1722208947640",
 			"/icon.ico" => "1714607096462",
 			"/icon.png" => "1714606567795",
 			"/icon.svg" => "1714606558695",
