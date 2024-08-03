@@ -57,7 +57,7 @@ public partial class FilePlugin : Plugin
                     
                     User user = req.UserTable.FindByUsername(segments[0]) ?? throw new NotFoundSignal();
                     segments[0] = "";
-                    bool exists = CheckAccess(req, user.Id, segments, false, out _, out var parent, out var directory, out var file, out var name);
+                    bool exists = CheckAccess(req, user.Id, segments, false, out var profile, out var parent, out var directory, out var file, out var name);
                     if (directory != null)
                     {
                         //view mode > directory
@@ -67,6 +67,8 @@ public partial class FilePlugin : Plugin
                             page.Title = name;
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXgud2ZwZw=="));
                             page.Title += " - Files";
+                            if (profile == null || !profile.Trusted)
+                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin;";
                         }
                         else
                         {
@@ -111,6 +113,8 @@ public partial class FilePlugin : Plugin
                     {
                         //view mode > file
                         req.Page = null;
+                        if (profile == null || !profile.Trusted)
+                            req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin;";
                         if (segments.Last().SplitAtLast('.', out _, out var extension))
                         {
                             req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
@@ -142,6 +146,8 @@ public partial class FilePlugin : Plugin
                             page.Title = segments[^1];
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
                             page.Title += " - Files";
+                            if (profile == null || !profile.Trusted)
+                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin;";
                         }
                         else MissingFileOrAccess(req, e);
                     }
