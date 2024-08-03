@@ -70,6 +70,28 @@ public partial class FilePlugin : Plugin
                             if (profile == null || !profile.Trusted)
                                 req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin;";
                         }
+                        else if (directory.Files.TryGetValue("index.html", out file))
+                        {
+                            //file (index.html)
+                            req.Page = null;
+                            if (profile == null || !profile.Trusted)
+                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin;";
+                            req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue(".html", out var contentType) ? contentType : null;
+                            if (Server.Config.BrowserCacheMaxAge.TryGetValue(".html", out int maxAge))
+                            {
+                                if (maxAge == 0)
+                                    req.Context.Response.Headers.CacheControl = "no-cache, private";
+                                else
+                                {
+                                    string timestamp = file.ModifiedUtc.Ticks.ToString();
+                                    req.Context.Response.Headers.CacheControl = "public, max-age=" + maxAge;
+                                    if (req.Context.Request.Headers.TryGetValue("If-None-Match", out var oldTag) && oldTag == timestamp)
+                                        throw new HttpStatusSignal(304);
+                                    else req.Context.Response.Headers.ETag = timestamp;
+                                }
+                            }
+                            await req.WriteFile($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXguaHRtbA==");
+                        }
                         else
                         {
                             //list directories and files
