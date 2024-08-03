@@ -21,6 +21,8 @@ public partial class FilePlugin : Plugin
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (file != null && (name == "index.html" || name == "index.wfpg"))
+                    throw new BadRequestSignal();
                 if (directory != null || file != null)
                 {
                     page.Title = name + " - Files";
@@ -96,7 +98,9 @@ public partial class FilePlugin : Plugin
                     }
                 }
                 var segments = p.Split('/');
-                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out var file, out _);
+                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out var file, out var name);
+                if (file != null && (name == "index.html" || name == "index.wfpg"))
+                    throw new BadRequestSignal();
                 if (profile == null)
                     throw new NotFoundSignal();
                 Dictionary<string,bool> shareAccess;
@@ -126,7 +130,9 @@ public partial class FilePlugin : Plugin
                 }
                 else e = -1;
                 var segments = p.Split('/');
-                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out var file, out _);
+                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out var file, out var name);
+                if (file != null && (name == "index.html" || name == "index.wfpg"))
+                    throw new BadRequestSignal();
                 if (profile == null)
                     throw new NotFoundSignal();
                 Node node;

@@ -50,7 +50,10 @@ public partial class FilePlugin : Plugin
                             new ButtonElement(null, "Shares", "shares")
                         ];
                     if (u == req.User.Id)
-                        e.Add(new ButtonElement("Share", null, $"share?u={u}&p={pEnc}"));
+                    {
+                        if (file == null || (name != "index.html" && name != "index.wfpg"))
+                            e.Add(new ButtonElement("Share", null, $"share?u={u}&p={pEnc}"));
+                    }
                     else if (req.LoggedIn)
                     {
                         userProfile ??= GetOrCreateProfile(req);
