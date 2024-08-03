@@ -31,7 +31,7 @@ public partial class FilePlugin : Plugin
 			"/icon.svg" => "1714606558695",
 			"/manifest.json" => "1721571035331",
 			"/more.js" => "1721769336453",
-			"/profiles.js" => "1721769414746",
+			"/profiles.js" => "1722721885269",
 			"/query.js" => "1714256773673",
 			"/share.js" => "1721768376779",
 			"/shares.js" => "1721768892378",

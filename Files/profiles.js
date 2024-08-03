@@ -1,3 +1,10 @@
+async function SaveTrusted() {
+    HideError();
+    if (await SendRequest(`profiles/trusted?u=${GetQuery("u")}&v=${document.getElementById("trusted").checked}`, "POST", true) === 200)
+        window.location.reload();
+    else ShowError("Connection failed.");
+}
+
 async function SaveLimit() {
     HideError();
     var button = document.querySelector("#save-limit");

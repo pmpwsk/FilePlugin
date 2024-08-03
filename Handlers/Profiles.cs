@@ -30,7 +30,11 @@ public partial class FilePlugin : Plugin
                         }
                     page.Sidebar.AddRange(sidebarItems.OrderBy(x => x.Text));
                     var user = req.UserTable.TryGet(u);
-                    e.Add(new HeadingElement("Manage profiles", $"{(user != null ? user.Username : $"[{u}]")} ({FileSizeString(profile.SizeUsed)} / {FileSizeString(profile.SizeLimit)})"));
+                    e.Add(new HeadingElement("Manage profiles",
+                    [
+                        new Paragraph($"{(user != null ? user.Username : $"[{u}]")} ({FileSizeString(profile.SizeUsed)} / {FileSizeString(profile.SizeLimit)})"),
+                        new Checkbox("Trusted", "trusted", profile.Trusted) { OnChange = "SaveTrusted()" }
+                    ]));
                     page.AddError();
                     var limit = profile.SizeLimit;
                     byte exp = 0;
@@ -57,12 +61,21 @@ public partial class FilePlugin : Plugin
                 }
             } break;
 
+            case "/profiles/trusted":
+            { req.ForcePOST(); req.ForceAdmin(false);
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("v", out bool v)))
+                    throw new BadRequestSignal();
+                if (!Table.TryGetValue($"{req.UserTable.Name}_{u}", out var profile))
+                    throw new NotFoundSignal();
+                profile.Lock();
+                profile.Trusted = v;
+                profile.UnlockSave();
+            } break;
+
             case "/profiles/limit":
-            { req.ForcePOST();
+            { req.ForcePOST(); req.ForceAdmin(false);
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("v", out var v) && v != ""))
                     throw new BadRequestSignal();
-                if (!req.IsAdmin)
-                    throw new ForbiddenSignal();
                 if (!Table.TryGetValue($"{req.UserTable.Name}_{u}", out var profile))
                     throw new NotFoundSignal();
                 char unit;
@@ -99,11 +112,9 @@ public partial class FilePlugin : Plugin
             } break;
 
             case "/profiles/delete":
-            { req.ForcePOST();
+            { req.ForcePOST(); req.ForceAdmin(false);
                 if (!req.Query.TryGetValue("u", out var u))
                     throw new BadRequestSignal();
-                if (!req.IsAdmin)
-                    throw new ForbiddenSignal();
                 string key = $"{req.UserTable.Name}_{u}";
                 if (!Table.TryGetValue(key, out var profile))
                     throw new NotFoundSignal();
