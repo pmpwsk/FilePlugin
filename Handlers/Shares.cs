@@ -99,7 +99,7 @@ public partial class FilePlugin : Plugin
                     [
                         new ButtonElement("Menu:", null, "."),
                         new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p="),
-                        new ButtonElement(null, "View mode", $"@{req.User.Username}"),
+                        new ButtonElement(null, "View mode", $"@{req.User.Username}/"),
                         new ButtonElement(null, "Shares", "shares", "green")
                     ];
                     e.Add(new HeadingElement("Shares"));

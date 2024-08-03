@@ -92,7 +92,7 @@ public partial class FilePlugin : Plugin
                             [
                                 new ButtonElement("Menu:", null, "."),
                                 new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p=", "green"),
-                                new ButtonElement(null, "View mode", $"@{req.User.Username}"),
+                                new ButtonElement(null, "View mode", $"@{req.User.Username}/"),
                                 new ButtonElement(null, "Shares", "shares")
                             ];
                     }
@@ -101,8 +101,8 @@ public partial class FilePlugin : Plugin
                     e.Add(new HeadingElement(name, "Edit mode"));
                     string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username;
                     if (segments.Last().EndsWith(".wfpg"))
-                        e.Add(new ButtonElement("View page", null, $"@{username}{(segments.Last() == "index.wfpg" ? string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode)) : string.Join('/', p[..^5].Split('/').Select(HttpUtility.UrlEncode)))}"));
-                    e.Add(new ButtonElement("View in browser", null, $"@{username}{(segments.Last() == "index.html" ? string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}"));
+                        e.Add(new ButtonElement("View page", null, $"@{username}{(segments.Last() == "index.wfpg" ? $"{string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode))}/" : string.Join('/', p[..^5].Split('/').Select(HttpUtility.UrlEncode)))}"));
+                    e.Add(new ButtonElement("View in browser", null, $"@{username}{(segments.Last() == "index.html" ? $"{string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode))}/" : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}"));
                     e.Add(new ButtonElement("Download", null, $"download?u={u}&p={pEnc}", newTab: true));
                     e.Add(new ButtonElement("Edit as text", null, $"editor?u={u}&p={pEnc}"));
                 }
