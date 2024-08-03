@@ -70,7 +70,7 @@ public partial class FilePlugin : Plugin
                     if (canEdit)
                         e.Add(new ButtonElement("Edit mode", null, $"edit?u={u}&p={pEnc}"));
                     e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"@{user.Username}{(file != null && segments.Last().EndsWith(".wfpg") ? string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}{(directory == null ? "" : "/")}", canEdit ? null : "green"));
-                    if (!canEdit)
+                    if (file != null && !canEdit)
                         e.Add(new ButtonElement("Download", null, $"download?u={u}&p={pEnc}"));
                     if (req.LoggedIn)
                     {
