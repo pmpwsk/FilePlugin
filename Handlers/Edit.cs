@@ -141,7 +141,7 @@ public partial class FilePlugin : Plugin
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 var segments = p.Split('/');
-                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out _, out _);
                 if (directory == null)
                     throw new NotFoundSignal();
                 if (profile == null)
@@ -150,6 +150,8 @@ public partial class FilePlugin : Plugin
                 req.BodySizeLimit = limit;
                 if ((!req.IsForm) || req.Files.Count == 0)
                     req.Status = 400;
+                if (req.Files.Any(x => directory.Directories.ContainsKey(x.FileName)))
+                    throw new HttpStatusSignal(302);
                 profile.Lock();
                 foreach (var uploadedFile in req.Files)
                 {

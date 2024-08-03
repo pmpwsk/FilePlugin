@@ -23,7 +23,7 @@ public partial class FilePlugin : Plugin
 	public override string? GetFileVersion(string relPath)
 		=> relPath switch
 		{
-			"/edit-d.js" => "1721685104637",
+			"/edit-d.js" => "1722717223690",
 			"/editor.css" => "1714470098815",
 			"/editor.js" => "1722208947640",
 			"/icon.ico" => "1714607096462",

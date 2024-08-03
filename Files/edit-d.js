@@ -50,6 +50,10 @@ async function Upload() {
                     document.querySelector('#upload').innerText = 'Done!';
                     window.location.reload();
                     break;
+                case 302:
+                    document.querySelector('#upload').innerText = 'Upload';
+                    ShowError("You're trying to upload a file with a name that a folder is using!");
+                    break;
                 case 413:
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("At least one of the selected files is too large!");
