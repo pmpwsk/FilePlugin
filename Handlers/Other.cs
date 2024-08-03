@@ -135,6 +135,8 @@ public partial class FilePlugin : Plugin
                     {
                         //view mode > file
                         req.Page = null;
+                        if (segments.Last() == "index.html")
+                            req.Redirect(".");
                         if (profile == null || !profile.Trusted)
                             req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin;";
                         if (segments.Last().SplitAtLast('.', out _, out var extension))
