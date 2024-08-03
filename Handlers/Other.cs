@@ -142,6 +142,9 @@ public partial class FilePlugin : Plugin
                         CheckAccess(req, user.Id, segments, false, out _, out _, out _, out file, out _);
                         if (file != null)
                         {
+                            if (segments[^1] == "index.wfpg")
+                                req.Redirect(".");
+
                             //wfpg (not index.wfpg)
                             page.Title = segments[^1];
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
