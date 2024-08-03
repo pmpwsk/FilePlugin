@@ -15,5 +15,7 @@ public partial class FilePlugin : Plugin
         [DataMember] public long SizeUsed = 0;
 
         [DataMember] public long SizeLimit = sizeLimit;
+
+        [DataMember] public bool Trusted = false;
     }
 }
