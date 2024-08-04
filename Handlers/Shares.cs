@@ -10,8 +10,7 @@ public partial class FilePlugin : Plugin
         switch (req.Path)
         {
             case "/shares":
-            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
-                page.Title = "Shares - Files";
+            { CreatePage(req, "Shares - Files", out var page, out var e, out var userProfile);
                 if (req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p))
                 {
                     if (req.LoggedIn && req.User.Id == u)
