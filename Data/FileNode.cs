@@ -10,5 +10,8 @@ public partial class FilePlugin : Plugin
         [DataMember] public DateTime ModifiedUtc = modifiedUtc;
 
         [DataMember] public long Size = size;
+
+        public FileNode Copy()
+            => new(ModifiedUtc, Size);
     }
 }

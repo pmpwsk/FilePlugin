@@ -38,8 +38,8 @@ public partial class FilePlugin : Plugin
                         ];
                         e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
                         e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
-                        e.Add(new ButtonElement("Move", null, $"move?u={u}&p={pEnc}"));
-                        e.Add(new ButtonElement("Copy", null, $"copy?u={u}&p={pEnc}"));
+                        e.Add(new ButtonElement("Move", null, $"move?u={u}&p={pEnc}&l={parentEnc}"));
+                        e.Add(new ButtonElement("Copy", null, $"copy?u={u}&p={pEnc}&l={parentEnc}"));
                     }
                     else if (u == req.User.Id)
                         page.Sidebar =
