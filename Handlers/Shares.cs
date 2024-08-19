@@ -86,7 +86,7 @@ public partial class FilePlugin : Plugin
                         page.Scripts.Add(new Script("shares.js"));
                         page.AddError();
                     }
-                    else e.Add(new ButtonElement(null, "You are viewing this share without logging in. That means you will lose access to it once this link has expired and the owner of this share can't allow you to edit anything.</p><p>Click here to log in.", $"{Presets.LoginPath(req)}?redirect={HttpUtility.UrlEncode($"{req.PluginPathPrefix}/shares?u={u}&p={pEnc}")}", "red"));
+                    else e.Add(new ButtonElement(null, "You are viewing this share without logging in. That means you will lose access to it once this link has expired and the owner of this share can't allow you to edit anything.</p><p>Click here to log in.", $"{Presets.LoginPath(req)}?redirect={HttpUtility.UrlEncode($"{req.PluginPathPrefix}/shares?u={u}&p={pEnc}")}", "red") {Unsafe = true});
                 }
                 else
                 {
