@@ -1,15 +1,10 @@
 let changedAlready = false;
 let savedValue = null;
-let ch = 0;
-let ta = document.querySelector('#text');
-let editor = document.querySelector('#editor');
+let ta = document.querySelector('#editor');
 let sidebar = document.querySelector('.sidebar');
 let full = document.querySelector('.full');
 let save = document.querySelector('#save');
 let back = document.querySelector('#back');
-window.onresize = Resize;
-ta.onclick = Refocus;
-Resize();
 Load();
 document.addEventListener('keydown', e => {
     if (e.ctrlKey && e.key === 's') {
@@ -18,30 +13,12 @@ document.addEventListener('keydown', e => {
     }
 });
 window.addEventListener("beforeunload", e => {
-    if (save.innerText === "Save" && back.innerText == "Back") {
+    if (save.innerText === "Save" && back.innerText === "Back") {
         var confirmationMessage = "You have unsaved changes!";
         (e || window.event).returnValue = confirmationMessage;
         return confirmationMessage;
     }
 });
-
-function Resize() {
-    let fullComp = window.getComputedStyle(full);
-    let editorComp = window.getComputedStyle(editor);
-    let newHeight = Math.floor(window.visualViewport.height - parseFloat(editorComp['marginTop']) - parseFloat(fullComp['paddingTop']) - parseFloat(fullComp['paddingBottom']));
-    editor.style.flex = '1';
-    editor.style.height = newHeight + 'px';
-    Refocus();
-}
-
-function Refocus() {
-    let nh = ta.clientHeight;
-    if (ch > nh && document.activeElement === ta) {
-        ta.blur();
-        ta.focus();
-    }
-    ch = nh;
-}
 
 async function Load() {
     try {
@@ -110,7 +87,7 @@ async function Save() {
 }
 
 function GoBack() {
-    if (save.innerText === "Save" && back.innerText == "Back")
+    if (save.innerText === "Save" && back.innerText === "Back")
         back.innerText = "Discard?";
     else window.location.assign(`edit?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}`);
 }
