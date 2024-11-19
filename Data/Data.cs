@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Web;
 
 namespace uwap.WebFramework.Plugins;
@@ -7,6 +8,8 @@ public partial class FilePlugin : Plugin
     public long DefaultProfileSizeLimit {get;set;} = 4294967296;
     
     public long UploadSizeLimit {get;set;} = 26214400;
+
+    private ConcurrentDictionary<string, HashSet<Request>> ChangeListeners = [];
 
     private readonly ProfileTable Table = ProfileTable.Import("FilePlugin.Profiles");
 
@@ -20,6 +23,26 @@ public partial class FilePlugin : Plugin
         profile = new(DefaultProfileSizeLimit);
         Table[key] = profile;
         return profile;
+    }
+
+    private Task RemoveChangeListener(Request req)
+    {
+        if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+            return Task.CompletedTask;
+        
+        string key = $"{u}/{p}";
+        if (ChangeListeners.TryGetValue(key, out var set) && set.Remove(req) && set.Count == 0)
+            ChangeListeners.Remove(key, out _);
+        
+        return Task.CompletedTask;
+    }
+
+    private async Task NotifyChangeListeners(string userId, IEnumerable<string> pSegments)
+    {
+        string key = string.Join('/', [userId, ..pSegments]);
+        if (ChangeListeners.TryGetValue(key, out var set))
+            foreach (var r in set)
+                await r.EventMessage("changed");
     }
 
     private Node? FindNode(Request req, string userId, string[] segments, out Profile? profile)

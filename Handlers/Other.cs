@@ -42,6 +42,26 @@ public partial class FilePlugin : Plugin
                     throw new NotFoundSignal();
                 await req.WriteFileAsDownload($"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}", name);
             } break;
+            
+            
+            
+            
+            // FILE CHANGED EVENT
+            case "/changed-event":
+            { req.ForceGET();
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    throw new BadRequestSignal();
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, false, out _, out _, out var directory, out var file, out _);
+                if (directory == null && file == null)
+                    throw new NotFoundSignal();
+                string key = string.Join('/', [u, ..segments]);
+                if (ChangeListeners.TryGetValue(key, out var set))
+                    set.Add(req);
+                else ChangeListeners[key] = [req];
+                req.KeepEventAliveCancelled += RemoveChangeListener;
+                await req.KeepEventAlive();
+            } break;
 
 
 

@@ -105,6 +105,9 @@ public partial class FilePlugin : Plugin
                 file.ModifiedUtc = DateTime.UtcNow;
                 profile.SizeUsed += file.Size - oldSize;
                 profile.UnlockSave();
+                await NotifyChangeListeners(u, segments);
+                if (parent != null)
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
             } break;
 
 

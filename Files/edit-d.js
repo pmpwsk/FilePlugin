@@ -1,3 +1,12 @@
+let u = GetQuery("u"); let pEnc = encodeURIComponent(GetQuery("p"));
+let ignoreChanges = false;
+let changedEvent = new EventSource(`changed-event?u=${u}&p=${pEnc}`);
+onbeforeunload = (event) => { changedEvent.close(); };
+changedEvent.onmessage = async (event) => {
+    if (event.data === "changed" && !ignoreChanges)
+        window.location.reload();
+};
+
 async function AddNode(d) {
     HideError();
     try {
@@ -7,11 +16,10 @@ async function AddNode(d) {
             ShowError("Enter a name.");
             return;
         }
-        var u = GetQuery("u");
-        var p = encodeURIComponent(GetQuery("p"));
-        switch (await SendRequest(`edit/add?u=${u}&p=${p}&n=${n}&d=${d}`, "POST", true)) {
+        ignoreChanges = true;
+        switch (await SendRequest(`edit/add?u=${u}&p=${pEnc}&n=${n}&d=${d}`, "POST", true)) {
             case 200:
-                window.location.assign(`edit?u=${u}&p=${p}%2f${n}`)
+                window.location.assign(`edit?u=${u}&p=${pEnc}%2f${n}`)
                 break;
             case 302:
                 ShowError("Another file or directory with this name already exists.");
@@ -23,6 +31,7 @@ async function AddNode(d) {
                 ShowError("Connection failed.");
                 break;
         }
+        ignoreChanges = false;
     } catch {
         ShowError("Connection failed.");
     }
@@ -35,6 +44,7 @@ async function Upload() {
         ShowError("No files selected!");
         return;
     }
+    ignoreChanges = true;
     var form = new FormData();
     for (var f of files)
     form.append("file", f);
@@ -44,7 +54,7 @@ async function Upload() {
         document.querySelector("#upload").innerText = `${((event.loaded / event.total) * 100).toFixed(2)}%`;
     });
     request.onreadystatechange = () => {
-        if (request.readyState == 4) {
+        if (request.readyState === 4) {
             switch (request.status) {
                 case 200:
                     document.querySelector('#upload').innerText = 'Done!';
@@ -53,18 +63,22 @@ async function Upload() {
                 case 302:
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("You're trying to upload a file with a name that a folder is using!");
+                    ignoreChanges = false;
                     break;
                 case 413:
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("At least one of the selected files is too large!");
+                    ignoreChanges = false;
                     break;
                 case 507:
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("Uploading these files would exceed your account's storage limit. You can most likely obtain more storage space by contacting the administrator.");
+                    ignoreChanges = false;
                     break;
                 default:
                     document.querySelector('#upload').innerText = 'Upload';
                     ShowError("Connection failed. A possible cause is that at least one of the selected files might be too large.");
+                    ignoreChanges = false;
                     break;
             }
         }

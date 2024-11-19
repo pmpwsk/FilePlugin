@@ -5,7 +5,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    private Task HandleCopyOrMove(Request req, bool isCopy)
+    private async Task HandleCopyOrMove(Request req, bool isCopy)
     {
         switch (req.Path)
         {
@@ -93,11 +93,13 @@ public partial class FilePlugin : Plugin
                     {
                         CopyDirectory(source, target);
                         loc_directory.Directories[item_name] = item_directory.Copy();
+                        await NotifyChangeListeners(u, loc_segments);
                     }
                     else if (item_file != null)
                     {
                         File.Copy(source, target);
                         loc_directory.Files[item_name] = item_file.Copy();
+                        await NotifyChangeListeners(u, loc_segments);
                     }
                 }
                 else
@@ -107,12 +109,16 @@ public partial class FilePlugin : Plugin
                         Directory.Move(source, target);
                         loc_directory.Directories[item_name] = item_directory;
                         item_parent.Directories.Remove(item_name);
+                        await NotifyChangeListeners(u, item_segments.SkipLast(1));
+                        await NotifyChangeListeners(u, loc_segments);
                     }
                     else if (item_file != null)
                     {
                         File.Move(source, target);
                         loc_directory.Files[item_name] = item_file;
                         item_parent.Files.Remove(item_name);
+                        await NotifyChangeListeners(u, item_segments.SkipLast(1));
+                        await NotifyChangeListeners(u, loc_segments);
                     }
                 }
                 profile.UnlockSave();
@@ -127,7 +133,5 @@ public partial class FilePlugin : Plugin
                 req.Status = 404;
                 break;
         }
-
-        return Task.CompletedTask;
     }
 }

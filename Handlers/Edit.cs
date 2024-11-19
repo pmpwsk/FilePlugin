@@ -5,7 +5,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    private Task HandleEdit(Request req)
+    private async Task HandleEdit(Request req)
     {
         switch (req.Path)
         {
@@ -134,6 +134,7 @@ public partial class FilePlugin : Plugin
                     directory.Files.Add(n, new(DateTime.UtcNow, 0));
                 }
                 profile.UnlockSave();
+                await NotifyChangeListeners(u, segments);
             } break;
 
             case "/edit/upload":
@@ -199,6 +200,7 @@ public partial class FilePlugin : Plugin
                     }
                 }
                 profile.UnlockSave();
+                await NotifyChangeListeners(u, segments);
             } break;
 
 
@@ -210,7 +212,5 @@ public partial class FilePlugin : Plugin
                 req.Status = 404;
                 break;
         }
-
-        return Task.CompletedTask;
     }
 }

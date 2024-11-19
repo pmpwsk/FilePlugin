@@ -5,7 +5,7 @@ namespace uwap.WebFramework.Plugins;
 
 public partial class FilePlugin : Plugin
 {
-    private Task HandleMore(Request req)
+    private async Task HandleMore(Request req)
     {
         switch (req.Path)
         {
@@ -80,12 +80,14 @@ public partial class FilePlugin : Plugin
                     profile.SizeUsed -= new DirectoryInfo(loc).GetFiles("*", SearchOption.AllDirectories).Sum(x => x.Length);
                     parent.Directories.Remove(name);
                     Directory.Delete(loc, true);
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
                 }
                 else if (file != null)
                 {
                     profile.SizeUsed -= new FileInfo(loc).Length;
                     parent.Files.Remove(name);
                     File.Delete(loc);
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
                 }
                 profile.UnlockSave();
             } break;
@@ -111,6 +113,7 @@ public partial class FilePlugin : Plugin
                         $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}",
                         $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), n]).Select(Parsers.ToBase64PathSafe))}");
                     profile.UnlockSave();
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
                 }
                 else if (file != null)
                 {
@@ -121,6 +124,7 @@ public partial class FilePlugin : Plugin
                         $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}",
                         $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), n]).Select(Parsers.ToBase64PathSafe))}");
                     profile.UnlockSave();
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
                 }
                 else throw new NotFoundSignal();
             } break;
@@ -134,7 +138,5 @@ public partial class FilePlugin : Plugin
                 req.Status = 404;
                 break;
         }
-
-        return Task.CompletedTask;
     }
 }
