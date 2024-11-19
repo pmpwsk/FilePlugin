@@ -1,10 +1,8 @@
 let changedAlready = false;
 let savedValue = null;
-let ta = document.querySelector('#editor');
-let sidebar = document.querySelector('.sidebar');
-let full = document.querySelector('.full');
-let save = document.querySelector('#save');
-let back = document.querySelector('#back');
+let ta = document.getElementById("editor");
+let save = document.getElementById("save");
+let back = document.getElementById("back");
 Load();
 document.addEventListener('keydown', e => {
     if (e.ctrlKey && e.key === 's') {

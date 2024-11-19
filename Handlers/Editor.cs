@@ -51,7 +51,7 @@ public partial class FilePlugin : Plugin
                     }
                     page.Navigation.Add(new Button("More", $"more?u={u}&p={pEnc}", "right"));
                     page.HideFooter = true;
-                    e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "editor", classes: "wider grow", onInput: "TextChanged(); Resize();"))
+                    e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "editor", classes: "wider grow", onInput: "TextChanged()"))
                     {
                         Button = new ButtonJS("Saved!", $"Save()", null, id: "save")
                     });
