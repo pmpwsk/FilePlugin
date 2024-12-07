@@ -94,14 +94,14 @@ public partial class FilePlugin : Plugin
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXgud2ZwZw=="));
                             page.Title += " - Files";
                             if (profile == null || !profile.Trusted)
-                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups;";
+                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
                         }
                         else if (directory.Files.TryGetValue("index.html", out file))
                         {
                             //file (index.html)
                             req.Page = null;
                             if (profile == null || !profile.Trusted)
-                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups;";
+                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
                             req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue(".html", out var contentType) ? contentType : null;
                             if (Server.Config.BrowserCacheMaxAge.TryGetValue(".html", out int maxAge))
                             {
@@ -165,7 +165,7 @@ public partial class FilePlugin : Plugin
                         if (segments.Last() == "index.html")
                             throw new RedirectSignal(".");
                         if (profile == null || !profile.Trusted)
-                            req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups;";
+                            req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
                         if (segments.Last().SplitAtLast('.', out _, out var extension))
                         {
                             req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
@@ -203,7 +203,7 @@ public partial class FilePlugin : Plugin
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
                             page.Title += " - Files";
                             if (profile == null || !profile.Trusted)
-                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups;";
+                                req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
                         }
                         else MissingFileOrAccess(req, e);
                     }
