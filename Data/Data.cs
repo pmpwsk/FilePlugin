@@ -137,7 +137,7 @@ public partial class FilePlugin : Plugin
                 hasAccess = true;
             
             if ((!wantsEdit) && n.ShareInvite != null && n.ShareInvite.Expiration >= DateTime.UtcNow
-                && req.Cookies.TryGet($"FilePluginShare_{userId}_{pEnc}") == n.ShareInvite.Code)
+                && (req.Cookies.TryGet($"FilePluginShare_{userId}_{pEnc}") == n.ShareInvite.Code || req.Query.TryGet("c") == n.ShareInvite.Code))
             {
                 req.Cookies.Add($"FilePluginShare_{userId}_{pEnc}", n.ShareInvite.Code, new() { Expires = Min(n.ShareInvite.Expiration, DateTime.UtcNow.AddDays(14)) });
                 hasAccess = true;
