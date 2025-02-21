@@ -51,7 +51,7 @@ public partial class FilePlugin : Plugin
                     page.AddError();
                     e.Add(new ContainerElement("Add access",
                     [
-                        new TextBox("Enter a username...", "", "name", onEnter: "AddAccess()", autofocus: true),
+                        new TextBox("Enter a user's name...", "", "target-name", onEnter: "AddAccess()", autofocus: true),
                         new Checkbox("Can edit", "edit")
                     ]) {Button = new ButtonJS("Add", "AddAccess()", "green")});
                     Node node;

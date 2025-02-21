@@ -1,6 +1,6 @@
 async function AddAccess() {
     HideError();
-    var un = document.querySelector("#name").value;
+    var un = document.querySelector("#target-name").value;
     if (un === "") {
         ShowError("Enter a username.");
         return;

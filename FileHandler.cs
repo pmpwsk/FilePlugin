@@ -25,7 +25,7 @@ public partial class FilePlugin : Plugin
 		{
 			"/copy-move.js" => "1722874810335",
 			"/edit-d.js" => "1732054999739",
-			"/editor.js" => "1732054330030",
+			"/editor.js" => "1740172449539",
 			"/icon.ico" => "1714607096462",
 			"/icon.png" => "1714606567795",
 			"/icon.svg" => "1714606558695",
@@ -33,7 +33,7 @@ public partial class FilePlugin : Plugin
 			"/more.js" => "1721769336453",
 			"/profiles.js" => "1722721885269",
 			"/query.js" => "1714256773673",
-			"/share.js" => "1721768376779",
+			"/share.js" => "1740172543138",
 			"/shares.js" => "1721768892378",
 			_ => null
 		};
