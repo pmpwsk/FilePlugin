@@ -1,29 +1,39 @@
-let u = GetQuery("u"); let pEnc = encodeURIComponent(GetQuery("p"));
+let u = GetQuery("u");
+let pEnc = encodeURIComponent(GetQuery("p"));
 let changedAlready = false;
 let savedValue = null;
-let ta = document.getElementById("editor");
-let save = document.getElementById("save");
-let back = document.getElementById("back");
-Load();
-document.addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        Save();
-    }
-});
-window.addEventListener("beforeunload", e => {
-    if (save.innerText === "Save" && back.innerText === "Back") {
-        var confirmationMessage = "You have unsaved changes!";
-        (e || window.event).returnValue = confirmationMessage;
-        return confirmationMessage;
-    }
-});
-let changedEvent = new EventSource(`changed-event?u=${u}&p=${pEnc}`);
-onbeforeunload = (event) => { changedEvent.close(); };
-changedEvent.onmessage = async (event) => {
-    if (event.data === "changed" && save.innerText === "Saved!")
-        await Load();
-};
+
+let ta, save, back;
+
+window.onload = async () => {
+    ta = document.getElementById("editor");
+    save = document.getElementById("save");
+    back = document.getElementById("back");
+    
+    await Load();
+    
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            Save();
+        }
+    });
+    window.addEventListener("beforeunload", e => {
+        if (save.innerText === "Save" && back.innerText === "Back") {
+            var confirmationMessage = "You have unsaved changes!";
+            (e || window.event).returnValue = confirmationMessage;
+            return confirmationMessage;
+        }
+    });
+    let changedEvent = new EventSource(`changed-event?u=${u}&p=${pEnc}`);
+    onbeforeunload = (event) => {
+        changedEvent.close();
+    };
+    changedEvent.onmessage = async (event) => {
+        if (event.data === "changed" && save.innerText === "Saved!")
+            await Load();
+    };
+}
 
 async function Load() {
     try {
