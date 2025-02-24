@@ -84,6 +84,11 @@ public partial class FilePlugin : Plugin
                         {
                             //wfpg (index.wfpg)
                             page.Title = name;
+                            
+                            CheckAccess(req, user.Id, [..segments, "index.wfpg"], true, out _, out _, out _, out var editFile, out _);
+                            if (editFile != null)
+                                page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/editor?u={user.Id}&p={HttpUtility.UrlEncode(string.Join('/', segments))}" + "/index.wfpg", "right"));
+                            
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}/aW5kZXgud2ZwZw=="));
                             page.Title += " - Files";
                             if (profile == null || !profile.Trusted)
@@ -126,6 +131,11 @@ public partial class FilePlugin : Plugin
                                 ];
                             }
                             else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? $"{req.PluginPathPrefix}/" : $"{req.PluginPathPrefix}/shares", "right"));
+                            
+                            CheckAccess(req, user.Id, segments, true, out _, out _, out var editDir, out _, out _);
+                            if (editDir != null)
+                                page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/list?u={user.Id}&p={HttpUtility.UrlEncode(string.Join('/', segments))}", "right"));
+                            
                             e.Add(new HeadingElement(name, "View mode"));
                             if (directory.Files.Count == 0 && directory.Directories.Count == 0)
                                 e.Add(new ContainerElement("No items!", "", "red"));
@@ -182,12 +192,24 @@ public partial class FilePlugin : Plugin
 
                             //wfpg (not index.wfpg)
                             page.Title = segments[^1];
+                            
+                            CheckAccess(req, user.Id, segments, true, out _, out _, out _, out var editFile, out _);
+                            if (editFile != null)
+                                page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/editor?u={user.Id}&p={HttpUtility.UrlEncode(string.Join('/', segments))}", "right"));
+                            
                             Server.ParseIntoPage(req, page, File.ReadAllLines($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}"));
                             page.Title += " - Files";
                             if (profile == null || !profile.Trusted)
                                 req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
                         }
                         else MissingFileOrAccess(req, e);
+                    }
+
+                    void AddEditModeLink(bool test)
+                    {
+                        CheckAccess(req, user.Id, segments, true, out _, out _, out var editDir, out var editFile, out _);
+                        if (editDir != null || editFile != null)
+                            page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/editor"));
                     }
                 }
                 else

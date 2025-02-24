@@ -44,6 +44,7 @@ public partial class FilePlugin : Plugin
                     ];
                 }
                 else page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
+                page.Navigation.Add(new Button("View", BuildViewModeLink(req, false, u, p), "right"));
                 
                 //content
                 page.HideFooter = true;
