@@ -26,7 +26,7 @@ public partial class FilePlugin : Plugin
 		=> relPath switch
 		{
 			"/add.js" => "1740330512490",
-			"/copy-move.js" => "1722874810335",
+			"/copy-move.js" => "1740368091549",
 			"/edit.js" => "1740359898027",
 			"/editor.js" => "1740172449539",
 			"/icon.ico" => "1714607096462",
