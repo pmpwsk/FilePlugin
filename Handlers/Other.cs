@@ -134,6 +134,7 @@ public partial class FilePlugin : Plugin
                             //wfpg (index.wfpg)
                             page.Title = name;
                             
+                            page.Navigation.Add(new Button("Back", parent != null ? ".." : req.LoggedIn && req.User.Id == user.Id ? $"{req.PluginPathPrefix}/" : $"{req.PluginPathPrefix}/shares", "right"));
                             CheckAccess(req, user.Id, [..segments, "index.wfpg"], true, out _, out _, out _, out var editFile, out _);
                             if (editFile != null)
                                 page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/editor?u={user.Id}&p={HttpUtility.UrlEncode(string.Join('/', segments))}" + "/index.wfpg", "right"));
@@ -242,6 +243,7 @@ public partial class FilePlugin : Plugin
                             //wfpg (not index.wfpg)
                             page.Title = segments[^1];
                             
+                            page.Navigation.Add(new Button("Back", ".", "right"));
                             CheckAccess(req, user.Id, segments, true, out _, out _, out _, out var editFile, out _);
                             if (editFile != null)
                                 page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/editor?u={user.Id}&p={HttpUtility.UrlEncode(string.Join('/', segments))}", "right"));
