@@ -22,12 +22,12 @@ public partial class FilePlugin : Plugin
                 await HandleCopyOrMove(req, req.Path[1] == 'c');
                 break;
 
-            // EDIT MODE
+            // EDIT FILE/DIRECTORY
             case "edit":
                 await HandleEdit(req);
                 break;
 
-            // EDIT MODE > EDITOR
+            // EDITOR
             case "editor":
                 await HandleEditor(req);
                 break;
@@ -37,7 +37,7 @@ public partial class FilePlugin : Plugin
                 await HandleProfiles(req);
                 break;
 
-            // EDIT MODE > SHARE
+            // SHARE
             case "share":
                 await HandleShare(req);
                 break;

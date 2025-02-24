@@ -64,8 +64,6 @@ public partial class FilePlugin : Plugin
             {
                 if (req.Path.StartsWith("/@"))
                 { CreatePage(req, "Files", out var page, out var e, out var userProfile);
-
-                    //view mode
                     string pathWithoutSlashAt = req.Path[2..];
                     bool directoryRequested;
                     if (directoryRequested = pathWithoutSlashAt.EndsWith('/'))
@@ -79,7 +77,7 @@ public partial class FilePlugin : Plugin
                     {
                         if (!directoryRequested)
                             throw new RedirectSignal($"{name}/");
-                        //view mode > directory
+                        //directory
                         if (directory.Files.TryGetValue("index.wfpg", out file))
                         {
                             //wfpg (index.wfpg)
@@ -152,7 +150,7 @@ public partial class FilePlugin : Plugin
                     {
                         if (directoryRequested)
                             throw new RedirectSignal($"../{segments.Last()}");
-                        //view mode > file
+                        //file
                         req.Page = null;
                         if (segments.Last() == "index.html")
                             throw new RedirectSignal(".");
