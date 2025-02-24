@@ -1,4 +1,5 @@
 using System.Web;
+using uwap.Database;
 using uwap.WebFramework.Accounts;
 using uwap.WebFramework.Elements;
 
@@ -34,6 +35,56 @@ public partial class FilePlugin : Plugin
                 if (file == null)
                     throw new NotFoundSignal();
                 await req.WriteFileAsDownload($"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}", name);
+            } break;
+
+
+
+            
+            // SEARCH
+            case "/search":
+            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
+                req.ForceLogin();
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
+                    throw new BadRequestSignal();
+                string pEnc = HttpUtility.UrlEncode(p);
+                var segments = p.Split('/');
+                CheckAccess(req, u, segments, true, out _, out var _, out var directory, out var file, out var name);
+                if (directory == null)
+                    if (file == null)
+                    {
+                        MissingFileOrAccess(req, e);
+                        break;
+                    }
+                    else throw new BadRequestSignal();
+                string? query = req.Query.TryGet("q");
+                
+                //head
+                page.Title = name + " - Files";
+                page.Scripts.Add(new Script("query.js"));
+                page.Scripts.Add(new Script("search.js"));
+                
+                page.Navigation.Add(new Button("Back", $"list?u={u}&p={pEnc}", "right"));
+                
+                //heading
+                e.Add(new LargeContainerElement(name, new TextBox("Enter a search term...", query, "search", onEnter: "Search()", autofocus: true)) { Button = new ButtonJS("Search", "Search()", "green")});
+                if (query == null)
+                    break;
+                
+                //search
+                List<SearchEntry> possibleResults = [];
+                AddNodesToList(possibleResults, directory, segments);
+                Search<SearchEntry> search = new(possibleResults, query);
+                search.Find(x => x.PathSegments.Last());
+                var results = search.Sort(x => x.Directory == null, x => x.PathSegments.Last()).ToList();
+                
+                //results
+                foreach (var item in results)
+                    if (item.Directory != null)
+                        e.Add(new ButtonElement(item.PathSegments.Last(), null, $"list?u={u}&p={HttpUtility.UrlEncode(string.Join('/', item.PathSegments))}"));
+                    else if (item.File != null)
+                        e.Add(new ButtonElement(item.PathSegments.Last(), $"{FileSizeString(item.File.Size)} | {item.File.ModifiedUtc.ToLongDateString()}", $"edit?u={u}&p={HttpUtility.UrlEncode(string.Join('/', item.PathSegments))}"));
+                if (results.Count == 0)
+                    e.Add(new ContainerElement("No items!", "", "red"));
             } break;
             
             

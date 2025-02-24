@@ -55,6 +55,7 @@ public partial class FilePlugin : Plugin
                     if (req.IsAdmin)
                         page.Navigation.Add(new Button("Manage", "profiles"));
                 }
+                page.Navigation.Add(new Button("Search", $"search?u={u}&p={pEnc}", "right"));
 
                 //heading
                 e.Add(new LargeContainerElement(name, $"{FileSizeString(profile.SizeUsed)} / {FileSizeString(profile.SizeLimit)} used") { Button = new Button("Add", $"add?u={u}&p={pEnc}", "green")});

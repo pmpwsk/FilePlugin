@@ -156,4 +156,25 @@ public partial class FilePlugin : Plugin
 
     private static bool NameOkay(string name)
         => !(name == "" || name == "." || name == ".." || name.Contains('/') || name.Contains('\\'));
+
+    private static void AddNodesToList(List<SearchEntry> list, DirectoryNode directory, string[] segments)
+    {
+        foreach (var dKV in directory.Directories)
+        {
+            list.Add(new(dKV.Value, null, [..segments, dKV.Key]));
+            AddNodesToList(list, dKV.Value, [..segments, dKV.Key]);
+        }
+        
+        foreach (var fKV in directory.Files)
+            list.Add(new(null, fKV.Value, [..segments, fKV.Key]));
+    }
+    
+    private class SearchEntry(DirectoryNode? directory, FileNode? file, string[] pathSegments)
+    {
+        public DirectoryNode? Directory = directory;
+
+        public FileNode? File = file;
+
+        public string[] PathSegments = pathSegments;
+    }
 }

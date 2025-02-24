@@ -16,8 +16,9 @@ public partial class FilePlugin : Plugin
 			"/manifest.json" => System.Text.Encoding.UTF8.GetBytes($"{{\n    \"name\": \"Files ({Parsers.DomainMain(domain)})\",\n    \"short_name\": \"Files\",\n    \"start_url\": \"{pathPrefix}/\",\n    \"display\": \"minimal-ui\",\n    \"background_color\": \"#000000\",\n    \"theme_color\": \"#202024\",\n    \"orientation\": \"portrait-primary\",\n    \"icons\": [\n      {{\n        \"src\": \"{pathPrefix}/icon.svg\",\n        \"type\": \"image/svg+xml\",\n        \"sizes\": \"any\"\n      }},\n      {{\n        \"src\": \"{pathPrefix}/icon.png\",\n        \"type\": \"image/png\",\n        \"sizes\": \"512x512\"\n      }},\n      {{\n        \"src\": \"{pathPrefix}/icon.ico\",\n        \"type\": \"image/x-icon\",\n        \"sizes\": \"16x16 24x24 32x32 48x48 64x64 72x72 96x96 128x128 256x256\"\n      }}\n    ],\n    \"launch_handler\": {{\n      \"client_mode\": \"navigate-new\"\n    }},\n    \"related_applications\": [\n      {{\n        \"platform\": \"webapp\",\n        \"url\": \"{pathPrefix}/manifest.json\"\n      }}\n    ],\n    \"offline_enabled\": false,\n    \"omnibox\": {{\n      \"keyword\": \"files\"\n    }},\n    \"version\": \"0.1.0\"\n  }}\n  "),
 			"/profiles.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File8"),
 			"/query.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File9"),
-			"/share.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File10"),
-			"/shares.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File11"),
+			"/search.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File10"),
+			"/share.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File11"),
+			"/shares.js" => (byte[]?)PluginFiles_ResourceManager.GetObject("File12"),
 			_ => null
 		};
 	
@@ -35,6 +36,7 @@ public partial class FilePlugin : Plugin
 			"/manifest.json" => "1721571035331",
 			"/profiles.js" => "1740359871769",
 			"/query.js" => "1714256773673",
+			"/search.js" => "1740363461110",
 			"/share.js" => "1740359845946",
 			"/shares.js" => "1721768892378",
 			_ => null
