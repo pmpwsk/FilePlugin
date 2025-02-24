@@ -202,13 +202,6 @@ public partial class FilePlugin : Plugin
                         }
                         else MissingFileOrAccess(req, e);
                     }
-
-                    void AddEditModeLink(bool test)
-                    {
-                        CheckAccess(req, user.Id, segments, true, out _, out _, out var editDir, out var editFile, out _);
-                        if (editDir != null || editFile != null)
-                            page.Navigation.Add(new Button("Edit", $"{req.PluginPathPrefix}/editor"));
-                    }
                 }
                 else
                 {
