@@ -1,6 +1,6 @@
 async function Delete() {
     HideError();
-    var del = document.querySelector("#delete").children[0];
+    var del = document.getElementById("delete").children[0];
     if (del.innerText !== "Delete?") {
         del.innerText = "Delete?";
         return;
@@ -8,7 +8,7 @@ async function Delete() {
     try {
         var u = GetQuery("u");
         var p = GetQuery("p");
-        if (await SendRequest(`more/delete?u=${u}&p=${encodeURIComponent(p)}`, "POST", true) === 200)
+        if (await SendRequest(`edit/delete?u=${u}&p=${encodeURIComponent(p)}`, "POST", true) === 200)
             window.location.assign(`edit?u=${u}&p=${encodeURIComponent(p.split("/").slice(0, -1).join("/"))}`);
         else ShowError("Connection failed.");
     } catch {
@@ -18,8 +18,8 @@ async function Delete() {
 
 async function SaveName() {
     HideError();
-    var rename = document.querySelector("#name-save");
-    var name = document.querySelector("#name").value;
+    var rename = document.getElementById("name-save");
+    var name = document.getElementById("name").value;
     if (name === "") {
         ShowError("Enter a name.");
         return;
@@ -27,7 +27,7 @@ async function SaveName() {
     try {
         var u = GetQuery("u");
         var p = GetQuery("p");
-        switch (await SendRequest(`more/rename?u=${u}&p=${encodeURIComponent(p)}&n=${encodeURIComponent(name)}`, "POST", true)) {
+        switch (await SendRequest(`edit/rename?u=${u}&p=${encodeURIComponent(p)}&n=${encodeURIComponent(name)}`, "POST", true)) {
             case 200:
                 rename.className = "";
                 rename.innerText = "Saved!";
@@ -49,7 +49,7 @@ async function SaveName() {
 }
 
 function NameChanged() {
-    var rename = document.querySelector("#name-save");
+    var rename = document.getElementById("name-save");
     rename.className = "green";
     rename.innerText = "Save";
 }

@@ -7,8 +7,8 @@ async function SaveTrusted() {
 
 async function SaveLimit() {
     HideError();
-    var button = document.querySelector("#save-limit");
-    var value = document.querySelector("#limit").value;
+    var button = document.getElementById("save-limit");
+    var value = document.getElementById("limit").value;
     if (value === "") {
         ShowError("Enter a limit.");
     } else try {
@@ -32,14 +32,14 @@ async function SaveLimit() {
 
 function ChangedLimit() {
     HideError();
-    var button = document.querySelector("#save-limit");
+    var button = document.getElementById("save-limit");
     button.className = "green";
     button.innerText = "Save";
 }
 
 async function Delete() {
     HideError();
-    let deleteText = document.querySelector("#delete").firstElementChild;
+    let deleteText = document.getElementById("delete").firstElementChild;
     if (deleteText.textContent === "Delete")
         deleteText.textContent = "Delete everything?";
     else try {

@@ -14,36 +14,36 @@ public partial class FilePlugin : Plugin
         page.Navigation =
         [
             page.Navigation.Count != 0 ? page.Navigation.First() : new Button(req.Domain, "/"),
-            new Button("Files", $"{req.PluginPathPrefix}/")
+            new Button("Files", req.LoggedIn ? $"{req.PluginPathPrefix}/list?u={req.User.Id}&p=" : $"{req.PluginPathPrefix}/")
         ];
         userProfile = null;
         if (req.LoggedIn)
             foreach (var cookie in req.Context.Request.Cookies)
+            {
+                if (!cookie.Key.StartsWith("FilePluginShare_"))
+                    continue;
+                if (!req.LoggedIn)
+                    break;
+                if (cookie.Key[16..].SplitAtFirst('_', out var u, out var p))
                 {
-                    if (!cookie.Key.StartsWith("FilePluginShare_"))
-                        continue;
-                    if (!req.LoggedIn)
-                        break;
-                    if (cookie.Key[16..].SplitAtFirst('_', out var u, out var p))
+                    p = HttpUtility.UrlDecode(p);
+                    userProfile ??= GetOrCreateProfile(req);
+                    if (!userProfile.SavedShares.Any(s => s.UserId == u && s.Path == p))
                     {
-                        p = HttpUtility.UrlDecode(p);
-                        userProfile ??= GetOrCreateProfile(req);
-                        if (!userProfile.SavedShares.Any(s => s.UserId == u && s.Path == p))
-                        {
-                            userProfile.Lock();
-                            userProfile.SavedShares.Add(new(u, p));
-                            userProfile.UnlockSave();
-                        }
-                        var node = FindNode(req, u, p.Split('/'), out var profile);
-                        if (node != null && profile != null && !node.ShareAccess.ContainsKey(req.User.Id))
-                        {
-                            profile.Lock();
-                            node.ShareAccess[req.User.Id] = false;
-                            profile.UnlockSave();
-                        }
+                        userProfile.Lock();
+                        userProfile.SavedShares.Add(new(u, p));
+                        userProfile.UnlockSave();
                     }
-                    req.Cookies.Delete(cookie.Key);
+                    var node = FindNode(req, u, p.Split('/'), out var profile);
+                    if (node != null && profile != null && !node.ShareAccess.ContainsKey(req.User.Id))
+                    {
+                        profile.Lock();
+                        node.ShareAccess[req.User.Id] = false;
+                        profile.UnlockSave();
+                    }
                 }
+                req.Cookies.Delete(cookie.Key);
+            }
     }
 
     private static void MissingFileOrAccess(Request req, List<IPageElement> e)
@@ -89,6 +89,22 @@ public partial class FilePlugin : Plugin
                 else return result;
             else return result + ".00";
         }
+    }
+
+    private static string BuildViewModeLink(Request req, bool isDirectory, string u, string p)
+    {
+        string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username; 
+        var segments = p.Split('/');
+        
+        if (!isDirectory)
+            if (segments.Last().EndsWith(".wfpg"))
+                if (segments.Last() == "index.wfpg")
+                    segments[^1] = "";
+                else segments[^1] = segments[^1][..^5];
+            else if (segments.Last() == "index.html")
+                segments[^1] = "";
+        
+        return $"@{username}{string.Join('/', segments.Select(HttpUtility.UrlPathEncode))}{(isDirectory ? "/" : "")}";
     }
 
     // from https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories without parameter "recursive"

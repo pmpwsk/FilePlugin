@@ -1,11 +1,11 @@
 async function AddAccess() {
     HideError();
-    var un = document.querySelector("#target-name").value;
+    var un = document.getElementById("target-name").value;
     if (un === "") {
         ShowError("Enter a username.");
         return;
     }
-    var canEdit = document.querySelector("#edit").checked;
+    var canEdit = document.getElementById("edit").checked;
     try {
         switch (await SendRequest(`share/set?u=${GetQuery("u")}&p=${encodeURIComponent(GetQuery("p"))}&un=${un}&e=${canEdit}`, "POST", true)) {
             case 200:
@@ -47,7 +47,7 @@ async function RemoveAccess(uid) {
 
 async function CreateInvite() {
     HideError();
-    var expiration = document.querySelector("#expiration").value;
+    var expiration = document.getElementById("expiration").value;
     if (expiration === "") {
         ShowError("Enter a number of days for the invite to expire after or 0 to disable expiration.");
         return;

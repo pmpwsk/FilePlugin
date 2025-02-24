@@ -10,71 +10,68 @@ public partial class FilePlugin : Plugin
         switch (req.Path)
         {
             case "/share":
-            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
-                //edit mode > share
+            { CreatePage(req, "Files", out var page, out var e, out _);
                 req.ForceLogin();
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 if (u != req.User.Id)
                     throw new ForbiddenSignal();
-                
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
                 if (file != null && (name == "index.html" || name == "index.wfpg"))
                     throw new BadRequestSignal();
-                if (directory != null || file != null)
+                if (directory == null && file == null)
                 {
-                    page.Title = name + " - Files";
-                    page.Scripts.Add(Presets.SendRequestScript);
-                    page.Scripts.Add(new Script("query.js"));
-                    page.Scripts.Add(new Script("share.js"));
-                    page.Navigation.Add(new Button("Back", $"more?u={u}&p={pEnc}", "right"));
-                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
-                    if (parent != null)
-                        page.Sidebar =
-                        [
-                            new ButtonElement(null, "Go up a level", $"edit?u={u}&p={parentEnc}"),
-                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
-                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
-                        ];
-                    else if (u == req.User.Id)
-                        page.Sidebar =
-                        [
-                            new ButtonElement("Menu:", null, "."),
-                            new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p=", "green"),
-                            new ButtonElement(null, "View mode", $"@{req.User.Username}"),
-                            new ButtonElement(null, "Shares", "shares")
-                        ];
-                    e.Add(new HeadingElement(name, "Edit mode > Share"));
-                    e.Add(new ButtonElementJS(null, "Copy link without inviting", $"navigator.clipboard.writeText('{req.PluginPathPrefix}/shares?u={u}&p={pEnc}'); document.querySelector('#copy').children[0].innerText = 'Copied!'", "green", id: "copy"));
-                    page.AddError();
-                    e.Add(new ContainerElement("Add access",
-                    [
-                        new TextBox("Enter a user's name...", "", "target-name", onEnter: "AddAccess()", autofocus: true),
-                        new Checkbox("Can edit", "edit")
-                    ]) {Button = new ButtonJS("Add", "AddAccess()", "green")});
-                    Node node;
-                    if (directory != null)
-                        node = directory;
-                    else if (file != null)
-                        node = file;
-                    else return Task.CompletedTask;
-                    foreach (var sKV in node.ShareAccess)
-                        e.Add(new ContainerElement(sKV.Key == "*" ? "*" : (req.UserTable.TryGetValue(sKV.Key, out var user) ? user.Username : $"[{sKV.Key}]"), "") { Buttons = 
-                        [
-                            sKV.Value ? new ButtonJS("View/Edit", $"SetAccess('{sKV.Key}', 'false')") : new ButtonJS("View only", $"SetAccess('{sKV.Key}', 'true')"),
-                            new ButtonJS("Remove", $"RemoveAccess('{sKV.Key}')", "red")
-                        ]});
-                    if (node.ShareInvite == null || node.ShareInvite.Expiration < DateTime.UtcNow)
-                        e.Add(new ContainerElement("Invite", new TextBox("Expires after x days...", null, "expiration", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
-                    else e.Add(new ContainerElement("Invite", $"Expires: {(node.ShareInvite.Expiration.Year >= 9999 ? "Never" : node.ShareInvite.Expiration.ToLongDateString())}") { Buttons = 
-                    [
-                        new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.PluginPathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}'); document.querySelector('#copy-invite').innerText = 'Copied!'", id: "copy-invite"),
-                        new ButtonJS("Delete", "DeleteInvite()", "red")
-                    ]});
+                    MissingFileOrAccess(req, e);
+                    break;
                 }
-                else throw new NotFoundSignal();
+            
+                //head
+                page.Title = name + " - Files";
+                page.Scripts.Add(Presets.SendRequestScript);
+                page.Scripts.Add(new Script("query.js"));
+                page.Scripts.Add(new Script("share.js"));
+                
+                //sidebar + navigation
+                page.Navigation.Add(new Button("Back", $"edit?u={u}&p={pEnc}", "right"));
+                string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                if (parent != null)
+                    page.Sidebar =
+                    [
+                        new ButtonElement(null, "Go up a level", $"edit?u={u}&p={parentEnc}"),
+                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                    ];
+                
+                //elements
+                e.Add(new HeadingElement(name, "Share"));
+                e.Add(new ButtonElementJS(null, "Copy link without inviting", $"navigator.clipboard.writeText('{req.PluginPathPrefix}/shares?u={u}&p={pEnc}'); document.getElementById('copy').children[0].innerText = 'Copied!'", "green", id: "copy"));
+                page.AddError();
+                e.Add(new ContainerElement("Add access",
+                [
+                    new TextBox("Enter a user's name...", "", "target-name", onEnter: "AddAccess()", autofocus: true),
+                    new Checkbox("Can edit", "edit")
+                ]) {Button = new ButtonJS("Add", "AddAccess()", "green")});
+                Node node;
+                if (directory != null)
+                    node = directory;
+                else if (file != null)
+                    node = file;
+                else return Task.CompletedTask;
+                foreach (var sKV in node.ShareAccess)
+                    e.Add(new ContainerElement(sKV.Key == "*" ? "*" : (req.UserTable.TryGetValue(sKV.Key, out var user) ? user.Username : $"[{sKV.Key}]"), "") { Buttons = 
+                    [
+                        sKV.Value ? new ButtonJS("View/Edit", $"SetAccess('{sKV.Key}', 'false')") : new ButtonJS("View only", $"SetAccess('{sKV.Key}', 'true')"),
+                        new ButtonJS("Remove", $"RemoveAccess('{sKV.Key}')", "red")
+                    ]});
+                if (node.ShareInvite == null || node.ShareInvite.Expiration < DateTime.UtcNow)
+                    e.Add(new ContainerElement("Invite", new TextBox("Expires after x days... (0=never)", null, "expiration", onEnter: "CreateInvite()")) { Button = new ButtonJS("Create", "CreateInvite()", "green") });
+                else e.Add(new ContainerElement("Invite", $"Expires: {(node.ShareInvite.Expiration.Year >= 9999 ? "Never" : node.ShareInvite.Expiration.ToLongDateString())}") { Buttons = 
+                [
+                    new ButtonJS("Copy", $"navigator.clipboard.writeText('{req.PluginPathPrefix}/shares?u={u}&p={pEnc}&c={node.ShareInvite.Code}'); document.getElementById('copy-invite').innerText = 'Copied!'", id: "copy-invite"),
+                    new ButtonJS("Delete", "DeleteInvite()", "red")
+                ]});
             } break;
 
             case "/share/set":

@@ -16,9 +16,10 @@ public partial class FilePlugin : Plugin
                     if (req.LoggedIn && req.User.Id == u)
                     {
                         req.Redirect(".");
-                        return Task.CompletedTask;
+                        break;
                     }
-                    //share selected
+                    
+                    //SHARE SELECTED
                     var pEnc = HttpUtility.UrlEncode(p);
                     var segments = p.Split('/');
                     CheckAccess(req, u, segments, true, out _, out _, out var directory, out var file, out _);
@@ -48,27 +49,37 @@ public partial class FilePlugin : Plugin
                             {
                                 RemoveBrokenShare(req, u, p);
                                 MissingFileOrAccess(req, e);
-                                return Task.CompletedTask;
+                                break;
                             }
                         }
                         else
                         {
                             RemoveBrokenShare(req, u, p);
                             MissingFileOrAccess(req, e);
-                            return Task.CompletedTask;
+                            break;
                         }
                     }
                     if (!req.UserTable.TryGetValue(u, out var user))
                     {
                         RemoveBrokenShare(req, u, p);
                         MissingFileOrAccess(req, e);
-                        return Task.CompletedTask;
+                        break;
                     }
-                    page.Navigation.Add(new Button("Back", ".", "right"));
+
+                    if (req.LoggedIn && canEdit)
+                    {
+                        req.Redirect(directory == null ? $"edit?u={u}&p={pEnc}" : $"list?u={u}&p={pEnc}");
+                        break;
+                    }
+                    
+                    //navigation
+                    page.Navigation.Add(new Button("Back", req.LoggedIn ? "shares" : ".", "right"));
+                    
+                    //elements
                     e.Add(new HeadingElement("Shares", $"@{user.Username}{p}"));
                     if (canEdit)
-                        e.Add(new ButtonElement("Edit mode", null, $"edit?u={u}&p={pEnc}"));
-                    e.Add(new ButtonElement(canEdit ? "View mode" : "View", null, $"@{user.Username}{(file != null && segments.Last().EndsWith(".wfpg") ? string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}{(directory == null ? "" : "/")}", canEdit ? null : "green"));
+                        e.Add(new ButtonElement("Edit", null,  directory == null ? $"edit?u={u}&p={pEnc}" : $"list?u={u}&p={pEnc}"));
+                    e.Add(new ButtonElement("View", null, $"@{user.Username}{(file != null && segments.Last().EndsWith(".wfpg") ? string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), segments.Last()[..^5]]).Select(HttpUtility.UrlEncode)) : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}{(directory == null ? "" : "/")}", canEdit ? null : "green"));
                     if (file != null && !canEdit)
                         e.Add(new ButtonElement("Download", null, $"download?u={u}&p={pEnc}"));
                     if (req.LoggedIn)
@@ -90,17 +101,10 @@ public partial class FilePlugin : Plugin
                 }
                 else
                 {
-                    //list shares
+                    //LIST SHARES
                     req.ForceLogin();
                     userProfile ??= GetOrCreateProfile(req);
-                    page.Navigation.Add(new Button("Back", ".", "right"));
-                    page.Sidebar =
-                    [
-                        new ButtonElement("Menu:", null, "."),
-                        new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p="),
-                        new ButtonElement(null, "View mode", $"@{req.User.Username}/"),
-                        new ButtonElement(null, "Shares", "shares", "green")
-                    ];
+                    page.Navigation.Add(new Button("Back", $"list?u={req.User.Id}&p=", "right"));
                     e.Add(new HeadingElement("Shares"));
                     if (userProfile.SavedShares.Count == 0)
                         e.Add(new ContainerElement("No items!", "", "red"));

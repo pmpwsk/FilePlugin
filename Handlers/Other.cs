@@ -10,18 +10,11 @@ public partial class FilePlugin : Plugin
     {
         switch (req.Path)
         {
-            // MAIN FILES PAGE
+            // REDIRECT FROM HOME
             case "/":
-            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
+            { CreatePage(req, "Files", out var page, out var e, out _);
                 req.ForceLogin();
-                userProfile ??= GetOrCreateProfile(req);
-                e.Add(new HeadingElement("Files", $"{FileSizeString(userProfile.SizeUsed)} / {FileSizeString(userProfile.SizeLimit)} used"));
-                e.Add(new ButtonElement("Edit mode", null, $"edit?u={req.User.Id}&p="));
-                e.Add(new ButtonElement("View mode", null, $"@{req.User.Username}"));
-                if (userProfile.SavedShares.Count != 0)
-                    e.Add(new ButtonElement("Shared with me", null, "shares"));
-                if (req.IsAdmin)
-                    e.Add(new ButtonElement("Manage profiles", null, "profiles"));
+                req.Redirect($"list?u={req.User.Id}&p=");
             } break;
 
 
@@ -77,7 +70,7 @@ public partial class FilePlugin : Plugin
                     bool directoryRequested;
                     if (directoryRequested = pathWithoutSlashAt.EndsWith('/'))
                         pathWithoutSlashAt = pathWithoutSlashAt[..^1];
-                    string[] segments = pathWithoutSlashAt.Split('/', '\\').Select(x => HttpUtility.UrlDecode(x)).ToArray();
+                    string[] segments = pathWithoutSlashAt.Split('/', '\\');
                     
                     User user = req.UserTable.FindByUsername(segments[0]) ?? throw new NotFoundSignal();
                     segments[0] = "";
@@ -102,7 +95,7 @@ public partial class FilePlugin : Plugin
                             req.Page = null;
                             if (profile == null || !profile.Trusted)
                                 req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
-                            req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue(".html", out var contentType) ? contentType : null;
+                            req.Context.Response.ContentType = Server.Config.MimeTypes.GetValueOrDefault(".html");
                             if (Server.Config.BrowserCacheMaxAge.TryGetValue(".html", out int maxAge))
                             {
                                 if (maxAge == 0)
@@ -128,31 +121,20 @@ public partial class FilePlugin : Plugin
                                 page.Sidebar =
                                 [
                                     new ButtonElement(null, "Go up a level", ".."),
-                                    ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"../{HttpUtility.UrlEncode(dKV.Key)}/", dKV.Key == name ? "green" : null))
+                                    ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"../{HttpUtility.UrlPathEncode(dKV.Key)}/", dKV.Key == name ? "green" : null))
                                     //don't list files
                                 ];
                             }
-                            else
-                            {
-                                page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? $"{req.PluginPathPrefix}/" : $"{req.PluginPathPrefix}/shares", "right"));
-                                if (req.LoggedIn && user.Id == req.User.Id)
-                                    page.Sidebar =
-                                    [
-                                        new ButtonElement("Menu:", null, "."),
-                                        new ButtonElement(null, "Edit mode", $"../edit?u={req.User.Id}&p="),
-                                        new ButtonElement(null, "View mode", $"../@{req.User.Username}/", "green"),
-                                        new ButtonElement(null, "Shares", "../shares")
-                                    ];
-                            }
+                            else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? $"{req.PluginPathPrefix}/" : $"{req.PluginPathPrefix}/shares", "right"));
                             e.Add(new HeadingElement(name, "View mode"));
                             if (directory.Files.Count == 0 && directory.Directories.Count == 0)
                                 e.Add(new ContainerElement("No items!", "", "red"));
                             else
                             {
                                 foreach (var dKV in directory.Directories)
-                                    e.Add(new ButtonElement(dKV.Key, null, $"{HttpUtility.UrlEncode(dKV.Key)}/"));
+                                    e.Add(new ButtonElement(dKV.Key, null, $"{HttpUtility.UrlPathEncode(dKV.Key)}/"));
                                 foreach (var fKV in directory.Files)
-                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", HttpUtility.UrlEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)));
+                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", HttpUtility.UrlPathEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)));
                             }
                         }
                     }

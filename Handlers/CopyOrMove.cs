@@ -37,9 +37,12 @@ public partial class FilePlugin : Plugin
                         break;
                     }
 
+                //head
                 page.Scripts.Add(Presets.SendRequestScript);
                 page.Scripts.Add(new Script("query.js"));
                 page.Scripts.Add(new Script("copy-move.js"));
+                
+                //sidebar + navigation
                 if (loc_parent != null)
                 {
                     string loc_parentEnc = HttpUtility.UrlEncode(string.Join('/', loc_segments.SkipLast(1)));
@@ -51,7 +54,9 @@ public partial class FilePlugin : Plugin
                         ..loc_parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"{(isCopy?"copy":"move")}?u={u}&p={item_pEnc}&l={loc_parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == loc_name ? "green" : null))
                     ];
                 }
-                e.Add(new LargeContainerElement(loc_name, $"You are {(isCopy?"copy":"mov")}ing: {item_name}") { Button = new Button("Cancel", $"more?u={u}&p={item_pEnc}", "red")});
+                
+                //elements
+                e.Add(new LargeContainerElement(loc_name, $"You are {(isCopy?"copy":"mov")}ing: {item_name}") { Button = new Button("Cancel", $"edit?u={u}&p={item_pEnc}", "red")});
                 if (!(loc_directory == item_parent || loc_directory.Directories.ContainsKey(item_name) || loc_directory.Directories.ContainsKey(item_name) || (item_directory != null && loc_pEnc.StartsWith(item_pEnc + "%2f")) || loc_directory == item_directory))
                     e.Add(new ButtonElementJS($"{(isCopy?"Copy":"Move")} here", null, "CopyOrMove()", "green"));
                 page.AddError();

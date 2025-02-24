@@ -9,16 +9,20 @@ public partial class FilePlugin : Plugin
         switch (req.Path)
         {
             case "/profiles":
-            { CreatePage(req, "Profiles - Files", out var page, out var e, out var userProfile);
+            { CreatePage(req, "Profiles - Files", out var page, out var e, out _);
                 req.ForceAdmin();
                 if (req.Query.TryGetValue("u", out var u))
                 {
-                    //manage given profile
+                    // MANAGE A GIVEN PROFILE
                     if (!Table.TryGetValue($"{req.UserTable.Name}_{u}", out var profile))
                         throw new NotFoundSignal();
+                    
+                    //head
                     page.Scripts.Add(Presets.SendRequestScript);
                     page.Scripts.Add(new Script("profiles.js"));
                     page.Scripts.Add(new Script("query.js"));
+                    
+                    //sidebar + navigation
                     string userTablePrefix = req.UserTable.Name + '_';
                     page.Sidebar.Add(new ButtonElement("Profiles:", null, "profiles"));
                     List<ButtonElement> sidebarItems = [];
@@ -29,6 +33,9 @@ public partial class FilePlugin : Plugin
                             sidebarItems.Add(new ButtonElement(null, req.UserTable.TryGetValue(userId, out var otherUser) ? otherUser.Username : $"[{userId}]", $"profiles?u={userId}", userId == u ? "green" : null));
                         }
                     page.Sidebar.AddRange(sidebarItems.OrderBy(x => x.Text));
+                    page.Navigation.Add(new Button("Back", "profiles", "right"));
+                    
+                    //elements
                     var user = req.UserTable.TryGet(u);
                     e.Add(new HeadingElement("Manage profiles",
                     [
@@ -45,8 +52,9 @@ public partial class FilePlugin : Plugin
                 }
                 else
                 {
-                    //list profiles
+                    //LIST PROFILES
                     e.Add(new HeadingElement("Manage profiles"));
+                    page.Navigation.Add(new Button("Back", $"list?u={req.User.Id}&p=", "right"));
                     string userTablePrefix = req.UserTable.Name + '_';
                     List<ButtonElement> items = [];
                     foreach (var kv in Table)

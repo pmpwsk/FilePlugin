@@ -6,7 +6,17 @@ public partial class FilePlugin : Plugin
     {
         switch (Parsers.GetFirstSegment(req.Path, out _))
         {
-            // EDIT MODE > COPY / MOVE
+            // LIST FILES
+            case "list":
+                await HandleList(req);
+                break;
+            
+            // ADD FILES/DIRECTORIES
+            case "add":
+                await HandleAdd(req);
+                break;
+            
+            // COPY/MOVE FILE/DIRECTORY
             case "copy":
             case "move":
                 await HandleCopyOrMove(req, req.Path[1] == 'c');
@@ -20,11 +30,6 @@ public partial class FilePlugin : Plugin
             // EDIT MODE > EDITOR
             case "editor":
                 await HandleEditor(req);
-                break;
-
-            // EDIT MODE > MORE
-            case "more":
-                await HandleMore(req);
                 break;
 
             // MANAGE PROFILES

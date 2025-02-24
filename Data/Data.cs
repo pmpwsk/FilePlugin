@@ -14,8 +14,11 @@ public partial class FilePlugin : Plugin
     private readonly ProfileTable Table = ProfileTable.Import("FilePlugin.Profiles");
 
     private Profile GetOrCreateProfile(Request req)
+        => GetOrCreateProfile(req, req.User.Id);
+
+    private Profile GetOrCreateProfile(Request req, string userId)
     {
-        string key = $"{req.UserTable.Name}_{req.User.Id}";
+        string key = $"{req.UserTable.Name}_{userId}";
         if (Table.TryGetValue(key, out var profile))
             return profile;
 

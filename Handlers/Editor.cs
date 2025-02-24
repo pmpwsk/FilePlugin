@@ -10,53 +10,47 @@ public partial class FilePlugin : Plugin
         switch (req.Path)
         {
             case "/editor":
-            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
-                //edit mode > file > editor
+            { CreatePage(req, "Files", out var page, out var e, out _);
                 req.ForceLogin();
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
-                if (directory != null)
-                    throw new BadRequestSignal();
-                else if (file != null)
+                if (file == null)
+                    if (directory == null)
+                    {
+                        MissingFileOrAccess(req, e);
+                        break;
+                    }
+                    else throw new BadRequestSignal();
+                
+                //head
+                page.Title = name + " - Files";
+                page.Scripts.Add(new Script("query.js"));
+                page.Scripts.Add(new Script("editor.js"));
+                
+                //sidebar + navigation
+                if (parent != null)
                 {
-                    page.Title = name + " - Files";
-                    page.Scripts.Add(new Script("query.js"));
-                    page.Scripts.Add(new Script("editor.js"));
-                    if (parent != null)
-                    {
-                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
-                        string parentUrl = $"edit?u={u}&p={parentEnc}";
-                        page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
-                        page.Sidebar =
-                        [
-                            new ButtonElement(null, "Go up a level", parentUrl),
-                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
-                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
-                        ];
-                    }
-                    else
-                    {
-                        page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
-                        if (u == req.User.Id)
-                            page.Sidebar =
-                            [
-                                new ButtonElement("Menu:", null, "."),
-                                new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p=", "green"),
-                                new ButtonElement(null, "View mode", $"@{req.User.Username}"),
-                                new ButtonElement(null, "Shares", "shares")
-                            ];
-                    }
-                    page.Navigation.Add(new Button("More", $"more?u={u}&p={pEnc}", "right"));
-                    page.HideFooter = true;
-                    e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "editor", classes: "wider grow", onInput: "TextChanged()"))
-                    {
-                        Button = new ButtonJS("Saved!", $"Save()", null, id: "save")
-                    });
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    string parentUrl = $"list?u={u}&p={parentEnc}";
+                    page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
+                    page.Sidebar =
+                    [
+                        new ButtonElement(null, "Go up a level", parentUrl),
+                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"list?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"editor?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                    ];
                 }
-                else MissingFileOrAccess(req, e);
+                else page.Navigation.Add(new ButtonJS("Back", "GoBack()", "right", id: "back"));
+                
+                //content
+                page.HideFooter = true;
+                e.Add(new LargeContainerElementIsoTop(name, new TextArea("Loading...", null, "editor", classes: "wider grow", onInput: "TextChanged()"))
+                {
+                    Button = new ButtonJS("Saved!", $"Save()", id: "save")
+                });
             } break;
 
             case "/editor/load":

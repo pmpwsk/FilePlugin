@@ -11,196 +11,149 @@ public partial class FilePlugin : Plugin
         {
             case "/edit":
             { CreatePage(req, "Files", out var page, out var e, out var userProfile);
-                //edit mode
                 req.ForceLogin();
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 string pEnc = HttpUtility.UrlEncode(p);
                 var segments = p.Split('/');
                 CheckAccess(req, u, segments, true, out _, out var parent, out var directory, out var file, out var name);
+                if (directory == null && file == null)
+                {
+                    MissingFileOrAccess(req, e);
+                    break;
+                }
+                
+                //head
+                page.Title = name + " - Files";
+                page.Scripts.Add(Presets.SendRequestScript);
+                page.Scripts.Add(new Script("query.js"));
+                page.Scripts.Add(new Script("edit.js"));
+                
+                //sidebar
+                if (parent != null)
+                {
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    string backUrl = $"list?u={u}&p={parentEnc}";
+                    page.Sidebar =
+                    [
+                        new ButtonElement(null, "Go up a level", backUrl),
+                        ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
+                        ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                    ];
+                }
+                
+                //navigation
                 if (directory != null)
+                    page.Navigation.Add(new Button("Back", $"list?u={u}&p={pEnc}", "right"));
+                else if (parent != null)
                 {
-                    //edit mode > directory
-                    page.Title = name + " - Files";
-                    page.Scripts.Add(Presets.SendRequestScript);
-                    page.Scripts.Add(new Script("query.js"));
-                    page.Scripts.Add(new Script("edit-d.js"));
-                    if (parent != null)
-                    {
-                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
-                        string backUrl = $"edit?u={u}&p={parentEnc}";
-                        page.Navigation.Add(new Button("Back", backUrl, "right"));
-                        page.Sidebar =
-                        [
-                            new ButtonElement(null, "Go up a level", backUrl),
-                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
-                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
-                        ];
-                    }
-                    else
-                    {
-                        page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == u ? "." : "shares", "right"));
-                        if (u == req.User.Id)
-                            page.Sidebar =
-                            [
-                                new ButtonElement("Menu:", null, "."),
-                                new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p=", "green"),
-                                new ButtonElement(null, "View mode", $"@{req.User.Username}"),
-                                new ButtonElement(null, "Shares", "shares")
-                            ];
-                    }
-                    page.Navigation.Add(new Button("More", $"more?u={u}&p={pEnc}", "right"));
-                    e.Add(new HeadingElement(name, "Edit mode"));
-                    e.Add(new ContainerElement("New", new TextBox("Enter a name...", null, "name", onEnter: "AddNode('false')", autofocus: true))
-                    { Buttons = [
-                        new ButtonJS("Text file", "AddNode('false')", "green"),
-                        new ButtonJS("Folder", "AddNode('true')", "green")
-                    ]});
-                    e.Add(new ContainerElement("Upload", new FileSelector("files", true)) { Button = new ButtonJS("Upload", "Upload()", "green", id: "upload")});
-                    page.AddError();
-                    if (directory.Files.Count == 0 && directory.Directories.Count == 0)
-                        e.Add(new ContainerElement("No items!", "", "red"));
-                    else
-                    {
-                        foreach (var dKV in directory.Directories)
-                            e.Add(new ButtonElement(dKV.Key, null, $"edit?u={u}&p={pEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}"));
-                        foreach (var fKV in directory.Files)
-                            e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", $"edit?u={u}&p={pEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}"));
-                    }
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    string backUrl = $"list?u={u}&p={parentEnc}";
+                    page.Navigation.Add(new Button("Back", backUrl, "right"));
                 }
-                else if (file != null)
+                else page.Navigation.Add(new Button("Back", $"list?u={req.User.Id}&p=", "right"));
+                
+                //elements
+                e.Add(new HeadingElement(name));
+                page.AddError();
+                
+                e.Add(new ButtonElement("View", null, BuildViewModeLink(req, directory != null, u, p)));
+                
+                if (file != null)
                 {
-                    //edit mode > file
-                    page.Title = name + " - Files";
-                    if (parent != null)
-                    {
-                        string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
-                        string backUrl = $"edit?u={u}&p={parentEnc}";
-                        page.Navigation.Add(new Button("Back", backUrl, "right"));
-                        page.Sidebar =
-                        [
-                            new ButtonElement(null, "Go up a level", backUrl),
-                            ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(dKV.Key)}", dKV.Key == name ? "green" : null)),
-                            ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, $"edit?u={u}&p={parentEnc}%2f{HttpUtility.UrlEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
-                        ];
-                    }
-                    else
-                    {
-                        page.Navigation.Add(new Button("Back", "shares", "right"));
-                        if (u == req.User.Id)
-                            page.Sidebar =
-                            [
-                                new ButtonElement("Menu:", null, "."),
-                                new ButtonElement(null, "Edit mode", $"edit?u={req.User.Id}&p=", "green"),
-                                new ButtonElement(null, "View mode", $"@{req.User.Username}/"),
-                                new ButtonElement(null, "Shares", "shares")
-                            ];
-                    }
-                    if (parent != null || req.LoggedIn)
-                        page.Navigation.Add(new Button("More", $"more?u={u}&p={pEnc}", "right"));
-                    e.Add(new HeadingElement(name, "Edit mode"));
-                    string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username;
-                    if (segments.Last().EndsWith(".wfpg"))
-                        e.Add(new ButtonElement("View page", null, $"@{username}{(segments.Last() == "index.wfpg" ? $"{string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode))}/" : string.Join('/', p[..^5].Split('/').Select(HttpUtility.UrlEncode)))}"));
-                    e.Add(new ButtonElement("View in browser", null, $"@{username}{(segments.Last() == "index.html" ? $"{string.Join('/', segments.SkipLast(1).Select(HttpUtility.UrlEncode))}/" : string.Join('/', p.Split('/').Select(HttpUtility.UrlEncode)))}"));
                     e.Add(new ButtonElement("Download", null, $"download?u={u}&p={pEnc}", newTab: true));
-                    e.Add(new ButtonElement("Edit as text", null, $"editor?u={u}&p={pEnc}"));
-                }
-                else MissingFileOrAccess(req, e);
-            } break;
-
-            case "/edit/add":
-            { req.ForcePOST();
-                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p) && req.Query.TryGetValue("n", out var n) && NameOkay(n) && req.Query.TryGetValue("d", out bool d)))
-                    throw new BadRequestSignal();
-                var segments = p.Split('/');
-                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
-                if (directory == null)
-                    throw new NotFoundSignal();
-                if (directory.Directories.ContainsKey(n) || directory.Files.ContainsKey(n))
-                    throw new HttpStatusSignal(302);
-                if (profile == null)
-                    throw new ServerErrorSignal();
-                profile.Lock();
-                string target = $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, n]).Select(Parsers.ToBase64PathSafe))}";
-                if (d)
-                {
-                    Directory.CreateDirectory(target);
-                    directory.Directories.Add(n, new());
+                    e.Add(new ButtonElement("Text editor", null, $"editor?u={u}&p={pEnc}"));
                 }
                 else
                 {
-                    File.WriteAllText(target, "");
-                    directory.Files.Add(n, new(DateTime.UtcNow, 0));
+                    e.Add(new ButtonElement("Add content", null, $"add?u={u}&p={pEnc}", "green"));
                 }
-                profile.UnlockSave();
-                await NotifyChangeListeners(u, segments);
+                
+                if (parent != null)
+                {
+                    string parentEnc = HttpUtility.UrlEncode(string.Join('/', segments.SkipLast(1)));
+                    e.Add(new ContainerElement("Rename", new TextBox("Enter a name...", name, "name", onEnter: "SaveName()", onInput: "NameChanged()", autofocus: true)) {Button = new ButtonJS("Saved!", "SaveName()", id: "name-save")});
+                    e.Add(new ButtonElementJS("Delete", null, $"Delete()", "red", id: "delete"));
+                    e.Add(new ButtonElement("Move", null, $"move?u={u}&p={pEnc}&l={parentEnc}"));
+                    e.Add(new ButtonElement("Copy", null, $"copy?u={u}&p={pEnc}&l={parentEnc}"));
+                }
+                
+                if (u == req.User.Id)
+                {
+                    if (file == null || (name != "index.html" && name != "index.wfpg"))
+                        e.Add(new ButtonElement("Share", null, $"share?u={u}&p={pEnc}"));
+                }
+                else if (req.LoggedIn)
+                {
+                    userProfile ??= GetOrCreateProfile(req);
+                    if (userProfile.SavedShares.Any(x => x.Path == p && x.UserId == u))
+                        e.Add(new ButtonElementJS("Remove from saved shares", null, "RemoveShare()", "red"));
+                    else e.Add(new ButtonElementJS("Add to saved shares", null, "AddShare()", "green"));
+                }
             } break;
 
-            case "/edit/upload":
+            case "/edit/delete":
             { req.ForcePOST();
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 var segments = p.Split('/');
-                CheckAccess(req, u, segments, true, out var profile, out _, out var directory, out _, out _);
-                if (directory == null)
+                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                if (parent == null || profile == null)
                     throw new NotFoundSignal();
-                if (profile == null)
-                    throw new ServerErrorSignal();
-                long limit = req.IsAdmin ? long.MaxValue : UploadSizeLimit;
-                req.BodySizeLimit = limit;
-                if ((!req.IsForm) || req.Files.Count == 0)
-                    req.Status = 400;
-                if (req.Files.Any(x => directory.Directories.ContainsKey(x.FileName)))
-                    throw new HttpStatusSignal(302);
                 profile.Lock();
-                foreach (var uploadedFile in req.Files)
+                string loc = $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}";
+                if (directory != null)
                 {
-                    if (!NameOkay(uploadedFile.FileName))
-                        continue;
-                    string loc = $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments, uploadedFile.FileName]).Select(Parsers.ToBase64PathSafe))}";
-                    long oldSize;
-                    if (directory.Files.TryGetValue(uploadedFile.FileName, out var f))
-                    {
-                        f.ModifiedUtc = DateTime.UtcNow;
-                        oldSize = f.Size;
-                    }
-                    else
-                    {
-                        f = new(DateTime.UtcNow, 0);
-                        directory.Files[uploadedFile.FileName] = f;
-                        oldSize = 0;
-                    }
-                    try
-                    {
-                        if (!uploadedFile.Download(loc, limit))
-                        {
-                            profile.SizeUsed -= oldSize;
-                            directory.Files.Remove(uploadedFile.FileName);
-                            profile.UnlockSave();
-                            throw new HttpStatusSignal(413);
-                        }
-                        f.Size = new FileInfo(loc).Length;
-                        if (profile.SizeUsed + f.Size - oldSize > profile.SizeLimit && !req.IsAdmin)
-                        {
-                            profile.SizeUsed -= oldSize;
-                            directory.Files.Remove(uploadedFile.FileName);
-                            profile.UnlockSave();
-                            throw new HttpStatusSignal(507);
-                        }
-                        profile.SizeUsed += f.Size - oldSize;
-                    }
-                    catch
-                    {
-                        try { File.Delete(loc); } catch { }
-                        profile.SizeUsed -= oldSize;
-                        directory.Files.Remove(uploadedFile.FileName);
-                        profile.UnlockSave();
-                        throw;
-                    }
+                    profile.SizeUsed -= new DirectoryInfo(loc).GetFiles("*", SearchOption.AllDirectories).Sum(x => x.Length);
+                    parent.Directories.Remove(name);
+                    Directory.Delete(loc, true);
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
+                }
+                else if (file != null)
+                {
+                    profile.SizeUsed -= new FileInfo(loc).Length;
+                    parent.Files.Remove(name);
+                    File.Delete(loc);
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
                 }
                 profile.UnlockSave();
-                await NotifyChangeListeners(u, segments);
+            } break;
+
+            case "/edit/rename":
+            { req.ForcePOST();
+                if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p) && req.Query.TryGetValue("n", out var n) && NameOkay(n)))
+                    throw new BadRequestSignal();
+                var segments = p.Split('/');
+                if (segments[^1] == n)
+                    break;
+                CheckAccess(req, u, segments, true, out var profile, out var parent, out var directory, out var file, out var name);
+                if (parent == null || profile == null)
+                    throw new NotFoundSignal();
+                if (parent.Files.ContainsKey(n) || parent.Directories.ContainsKey(n))
+                    throw new HttpStatusSignal(302);
+                if (directory != null)
+                {
+                    profile.Lock();
+                    parent.Directories.Remove(name);
+                    parent.Directories[n] = directory;
+                    Directory.Move(
+                        $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}",
+                        $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), n]).Select(Parsers.ToBase64PathSafe))}");
+                    profile.UnlockSave();
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
+                }
+                else if (file != null)
+                {
+                    profile.Lock();
+                    parent.Files.Remove(name);
+                    parent.Files[n] = file;
+                    File.Move(
+                        $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}",
+                        $"../FilePlugin.Profiles/{req.UserTable.Name}_{u}{string.Join('/', ((IEnumerable<string>)[..segments.SkipLast(1), n]).Select(Parsers.ToBase64PathSafe))}");
+                    profile.UnlockSave();
+                    await NotifyChangeListeners(u, segments.SkipLast(1));
+                }
+                else throw new NotFoundSignal();
             } break;
 
 
