@@ -176,8 +176,8 @@ public partial class FilePlugin : Plugin
                                 page.Sidebar =
                                 [
                                     new ButtonElement(null, "Go up a level", ".."),
-                                    ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"../{HttpUtility.UrlPathEncode(dKV.Key)}/", dKV.Key == name ? "green" : null)),
-                                    ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, fKV.Key is "index.wfpg" or "index.html" ? ".." : fKV.Key.EndsWith(".wfpg") ? $"../{HttpUtility.UrlPathEncode(fKV.Key[..^5])}" : $"../{HttpUtility.UrlPathEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
+                                    ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"../{UrlPathEncodeProperly(dKV.Key)}/", dKV.Key == name ? "green" : null)),
+                                    ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, fKV.Key is "index.wfpg" or "index.html" ? ".." : fKV.Key.EndsWith(".wfpg") ? $"../{UrlPathEncodeProperly(fKV.Key[..^5])}" : $"../{UrlPathEncodeProperly(fKV.Key)}", fKV.Key == name ? "green" : null))
                                 ];
                             }
                             else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? $"{req.PluginPathPrefix}/" : $"{req.PluginPathPrefix}/shares", "right"));
@@ -192,9 +192,9 @@ public partial class FilePlugin : Plugin
                             else
                             {
                                 foreach (var dKV in directory.Directories)
-                                    e.Add(new ButtonElement(dKV.Key, null, $"{HttpUtility.UrlPathEncode(dKV.Key)}/"));
+                                    e.Add(new ButtonElement(dKV.Key, null, $"{UrlPathEncodeProperly(dKV.Key)}/"));
                                 foreach (var fKV in directory.Files)
-                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", HttpUtility.UrlPathEncode(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)));
+                                    e.Add(new ButtonElement(fKV.Key, $"{FileSizeString(fKV.Value.Size)} | {fKV.Value.ModifiedUtc.ToLongDateString()}", UrlPathEncodeProperly(fKV.Key.EndsWith(".wfpg") ? fKV.Key[..^5] : fKV.Key)));
                             }
                         }
                     }

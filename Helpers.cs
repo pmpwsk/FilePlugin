@@ -104,8 +104,11 @@ public partial class FilePlugin : Plugin
             else if (segments.Last() == "index.html")
                 segments[^1] = "";
         
-        return $"@{username}{string.Join('/', segments.Select(HttpUtility.UrlPathEncode))}{(isDirectory ? "/" : "")}";
+        return $"@{username}{string.Join('/', segments.Select(UrlPathEncodeProperly))}{(isDirectory ? "/" : "")}";
     }
+
+    private static string UrlPathEncodeProperly(string value)
+        => HttpUtility.UrlEncode(value).Replace("+", "%20");
 
     // from https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories without parameter "recursive"
     private static void CopyDirectory(string sourceDir, string destinationDir)
