@@ -124,8 +124,8 @@ public partial class FilePlugin : Plugin
                                 page.Sidebar =
                                 [
                                     new ButtonElement(null, "Go up a level", ".."),
-                                    ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"../{HttpUtility.UrlPathEncode(dKV.Key)}/", dKV.Key == name ? "green" : null))
-                                    //don't list files
+                                    ..parent.Directories.Select(dKV => new ButtonElement(null, dKV.Key, $"../{HttpUtility.UrlPathEncode(dKV.Key)}/", dKV.Key == name ? "green" : null)),
+                                    ..parent.Files.Select(fKV => new ButtonElement(null, fKV.Key, fKV.Key is "index.wfpg" or "index.html" ? ".." : fKV.Key.EndsWith(".wfpg") ? $"../{HttpUtility.UrlPathEncode(fKV.Key[..^5])}" : $"../{HttpUtility.UrlPathEncode(fKV.Key)}", fKV.Key == name ? "green" : null))
                                 ];
                             }
                             else page.Navigation.Add(new Button("Back", req.LoggedIn && req.User.Id == user.Id ? $"{req.PluginPathPrefix}/" : $"{req.PluginPathPrefix}/shares", "right"));
