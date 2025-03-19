@@ -209,22 +209,12 @@ public partial class FilePlugin : Plugin
                         if (profile == null || !profile.Trusted)
                             req.Context.Response.Headers.ContentSecurityPolicy = "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox;";
                         if (segments.Last().SplitAtLast('.', out _, out var extension))
-                        {
-                            req.Context.Response.ContentType = Server.Config.MimeTypes.TryGetValue('.' + extension, out var contentType) ? contentType : null;
-                            if (Server.Config.BrowserCacheMaxAge.TryGetValue('.' + extension, out int maxAge))
-                            {
-                                if (maxAge == 0)
-                                    req.Context.Response.Headers.CacheControl = "no-cache, private";
-                                else
-                                {
-                                    string timestamp = file.ModifiedUtc.Ticks.ToString();
-                                    req.Context.Response.Headers.CacheControl = "public, max-age=" + maxAge;
-                                    if (req.Context.Request.Headers.TryGetValue("If-None-Match", out var oldTag) && oldTag == timestamp)
-                                        throw new HttpStatusSignal(304);
-                                    else req.Context.Response.Headers.ETag = timestamp;
-                                }
-                            }
-                        }
+                            req.Context.Response.ContentType = Server.Config.MimeTypes.GetValueOrDefault('.' + extension);
+                        string timestamp = file.ModifiedUtc.Ticks.ToString();
+                        req.Context.Response.Headers.CacheControl = "no-cache, private, must-revalidate";
+                        if (req.Context.Request.Headers.TryGetValue("If-None-Match", out var oldTag) && oldTag == timestamp)
+                            throw new HttpStatusSignal(304);
+                        req.Context.Response.Headers.ETag = timestamp;
                         await req.WriteFile($"../FilePlugin.Profiles/{req.UserTable.Name}_{user.Id}{string.Join('/', segments.Select(Parsers.ToBase64PathSafe))}");
                     }
                     else if (exists)
