@@ -97,7 +97,7 @@ public partial class FilePlugin : Plugin
                     throw new NotFoundSignal();
                 if (profile == null)
                     throw new ServerErrorSignal();
-                long limit = req.IsAdmin ? long.MaxValue : UploadSizeLimit;
+                long limit = req.IsAdmin ? long.MaxValue : profile.SizeLimit;
                 req.BodySizeLimit = limit;
                 if ((!req.IsForm) || req.Files.Count == 0)
                     req.Status = 400;

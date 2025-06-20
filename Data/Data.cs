@@ -6,8 +6,6 @@ namespace uwap.WebFramework.Plugins;
 public partial class FilePlugin : Plugin
 {
     public long DefaultProfileSizeLimit {get;set;} = 4294967296;
-    
-    public long UploadSizeLimit {get;set;} = 26214400;
 
     private ConcurrentDictionary<string, HashSet<Request>> ChangeListeners = [];
 
