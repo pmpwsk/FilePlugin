@@ -103,7 +103,7 @@ public partial class FilePlugin : Plugin
                 if (ChangeListeners.TryGetValue(key, out var set))
                     set.Add(req);
                 else ChangeListeners[key] = [req];
-                req.KeepEventAliveCancelled += RemoveChangeListener;
+                req.KeepEventAliveCancelled.Register(RemoveChangeListener);
                 await req.KeepEventAlive();
             } break;
 
