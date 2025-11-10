@@ -3,7 +3,7 @@ using uwap.WebFramework.Elements;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     private async Task HandleAdd(Request req)
     {

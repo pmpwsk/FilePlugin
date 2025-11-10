@@ -3,7 +3,7 @@ using uwap.WebFramework.Elements;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     private Task HandleShare(Request req)
     {
@@ -106,11 +106,14 @@ public partial class FilePlugin : Plugin
                 else if (file != null)
                     shareAccess = file.ShareAccess;
                 else throw new NotFoundSignal();
-                profile.Lock();
-                if (req.Query.TryGetValue("e", out bool canEdit))
-                    shareAccess[uid] = canEdit;
-                else shareAccess.Remove(uid);
-                profile.UnlockSave();
+                if (uid != null)
+                {
+                    profile.Lock();
+                    if (req.Query.TryGetValue("e", out bool canEdit))
+                        shareAccess[uid] = canEdit;
+                    else shareAccess.Remove(uid);
+                    profile.UnlockSave();
+                }
             } break;
 
             case "/share/invite":

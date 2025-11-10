@@ -1,6 +1,6 @@
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     public FilePlugin()
     {

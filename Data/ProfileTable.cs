@@ -2,31 +2,31 @@ using uwap.Database;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
-    private class ProfileTable : Table<Profile>
+    private class ProfileTable : LegacyTable<Profile>
     {
         private ProfileTable(string name) : base(name) { }
 
         protected static new ProfileTable Create(string name)
         {
-            if (!name.All(Tables.KeyChars.Contains))
-                throw new Exception($"This name contains characters that are not part of Tables.KeyChars ({Tables.KeyChars}).");
+            if (!name.All(LegacyTables.KeyChars.Contains))
+                throw new Exception($"This name contains characters that are not part of Tables.KeyChars ({LegacyTables.KeyChars}).");
             if (Directory.Exists("../Database/" + name))
                 throw new Exception("A table with this name already exists, try importing it instead.");
 
             Directory.CreateDirectory("../Database/" + name);
             ProfileTable table = new(name);
-            Tables.Dictionary[name] = table;
+            LegacyTables.Dictionary[name] = table;
             return table;
         }
 
         public static new ProfileTable Import(string name, bool skipBroken = false)
         {
-            if (Tables.Dictionary.TryGetValue(name, out ITable? table))
+            if (LegacyTables.Dictionary.TryGetValue(name, out ILegacyTable? table))
                 return (ProfileTable)table;
-            if (!name.All(Tables.KeyChars.Contains))
-                throw new Exception($"This name contains characters that are not part of Tables.KeyChars ({Tables.KeyChars}).");
+            if (!name.All(LegacyTables.KeyChars.Contains))
+                throw new Exception($"This name contains characters that are not part of Tables.KeyChars ({LegacyTables.KeyChars}).");
             if (!Directory.Exists("../Database/" + name))
                 return Create(name);
 
@@ -35,7 +35,7 @@ public partial class FilePlugin : Plugin
 
             ProfileTable result = new(name);
             result.Reload(skipBroken);
-            Tables.Dictionary[name] = result;
+            LegacyTables.Dictionary[name] = result;
             return result;
         }
 
@@ -44,7 +44,7 @@ public partial class FilePlugin : Plugin
             yield return "../FilePlugin.Profiles";
         }
 
-        protected override IEnumerable<string> EnumerateOtherDirectories(TableEntry<Profile> entry)
+        protected override IEnumerable<string> EnumerateOtherDirectories(LegacyTableEntry<Profile> entry)
         {
             yield return $"../FilePlugin.Profiles/{entry.Key}";
         }

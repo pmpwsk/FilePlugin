@@ -3,10 +3,10 @@ using uwap.Database;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     [DataContract]
-    private class Profile(long sizeLimit) : ITableValue
+    private class Profile(long sizeLimit) : ILegacyTableValue
     {
         [DataMember] public List<ShareInfo> SavedShares = [];
 

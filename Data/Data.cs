@@ -3,7 +3,7 @@ using System.Web;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     public long DefaultProfileSizeLimit {get;set;} = 4294967296;
 

@@ -3,7 +3,7 @@ using uwap.WebFramework.Elements;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     private void CreatePage(Request req, string title, out Page page, out List<IPageElement> e, out Profile? userProfile)
     {
@@ -93,7 +93,7 @@ public partial class FilePlugin : Plugin
 
     private static string BuildViewModeLink(Request req, bool isDirectory, string u, string p)
     {
-        string username = u == req.User.Id ? req.User.Username : req.UserTable[u].Username; 
+        string username = u == req.User.Id ? req.User.Username : req.UserTable.GetById(u).Username; 
         var segments = p.Split('/');
         
         if (!isDirectory)

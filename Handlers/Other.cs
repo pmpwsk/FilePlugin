@@ -5,7 +5,7 @@ using uwap.WebFramework.Elements;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     private async Task HandleOther(Request req)
     {
@@ -13,7 +13,7 @@ public partial class FilePlugin : Plugin
         {
             // REDIRECT FROM HOME
             case "/":
-            { CreatePage(req, "Files", out var page, out var e, out _);
+            { CreatePage(req, "Files", out _, out _, out _);
                 req.ForceLogin();
                 req.Redirect($"list?u={req.User.Id}&p=");
             } break;
@@ -27,7 +27,7 @@ public partial class FilePlugin : Plugin
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
                 var segments = p.Split('/');
-                CheckAccess(req, u, segments, false, out var profile, out var parent, out var directory, out var file, out var name);
+                CheckAccess(req, u, segments, false, out var profile, out _, out var directory, out var file, out var name);
                 if (directory != null)
                     throw new BadRequestSignal();
                 if (profile == null)
@@ -42,7 +42,7 @@ public partial class FilePlugin : Plugin
             
             // SEARCH
             case "/search":
-            { CreatePage(req, "Files", out var page, out var e, out var userProfile);
+            { CreatePage(req, "Files", out var page, out var e, out _);
                 req.ForceLogin();
                 if (!(req.Query.TryGetValue("u", out var u) && req.Query.TryGetValue("p", out var p)))
                     throw new BadRequestSignal();
@@ -114,7 +114,7 @@ public partial class FilePlugin : Plugin
             default:
             {
                 if (req.Path.StartsWith("/@"))
-                { CreatePage(req, "Files", out var page, out var e, out var userProfile);
+                { CreatePage(req, "Files", out var page, out var e, out _);
                     string pathWithoutSlashAt = req.Path[2..];
                     bool directoryRequested;
                     if (directoryRequested = pathWithoutSlashAt.EndsWith('/'))

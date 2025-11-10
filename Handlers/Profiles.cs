@@ -2,7 +2,7 @@ using uwap.WebFramework.Elements;
 
 namespace uwap.WebFramework.Plugins;
 
-public partial class FilePlugin : Plugin
+public partial class FilePlugin
 {
     private Task HandleProfiles(Request req)
     {
@@ -36,7 +36,7 @@ public partial class FilePlugin : Plugin
                     page.Navigation.Add(new Button("Back", "profiles", "right"));
                     
                     //elements
-                    var user = req.UserTable.TryGet(u);
+                    var user = req.UserTable.GetByIdNullable(u);
                     e.Add(new HeadingElement("Manage profiles",
                     [
                         new Paragraph($"{(user != null ? user.Username : $"[{u}]")} ({FileSizeString(profile.SizeUsed)} / {FileSizeString(profile.SizeLimit)})"),
@@ -124,7 +124,7 @@ public partial class FilePlugin : Plugin
                 if (!req.Query.TryGetValue("u", out var u))
                     throw new BadRequestSignal();
                 string key = $"{req.UserTable.Name}_{u}";
-                if (!Table.TryGetValue(key, out var profile))
+                if (!Table.TryGetValue(key, out _))
                     throw new NotFoundSignal();
                 Directory.Delete("../FilePlugin.Profiles/" + key, true);
                 Table.Delete(key);
